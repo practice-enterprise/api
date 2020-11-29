@@ -9,7 +9,7 @@ if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV == null) {
 (async () => {
   setSofa(new Sofa(process.env.COUCHDB || 'http://admin:admin@localhost:5984'));
   await sofa.doMigrations();
-  
+
   const app = applyRoutes(Express());
   app.listen(process.env.PORT || 3000, () => {
     console.log(`listening on localhost:${process.env.PORT || 3000}`);
