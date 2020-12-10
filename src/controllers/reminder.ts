@@ -16,13 +16,13 @@ export class ReminderController {
           return next();
         }
 
-        sofa.db.guilds.insert(req.body)
+        sofa.db.reminders.insert(req.body)
           .then((d) => res.send(d.rev))
           .catch(() => res.sendStatus(500))
           .finally(() => next());
       })
       .post('/', (req, res, next) => {
-        sofa.db.guilds.insert(req.body)
+        sofa.db.reminders.insert(req.body)
           .then((d) => res.send(d.rev))
           .catch(() => res.sendStatus(500))
           .finally(() => next());
