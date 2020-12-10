@@ -26,6 +26,12 @@ export class ReminderController {
           .then((d) => res.send(d.rev))
           .catch(() => res.sendStatus(500))
           .finally(() => next());
+      })
+      .delete('/:id', (req, res, next) => {
+        sofa.db.reminders.destroy(req.body._id, req.body._rev)
+          .then((d) => res.sendStatus(200))
+          .catch(() => res.sendStatus(500))
+          .finally(() => next());
       });
   }
 }
