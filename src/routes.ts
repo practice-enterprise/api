@@ -4,6 +4,7 @@ import Cors from 'cors';
 import Bodyparser from 'body-parser';
 import Compression from 'compression';
 import { HealthController } from './controllers/health';
+import { GuildController } from './controllers/guild';
 
 export function applyRoutes(express: Express): Express {
   express.disable('etag');
@@ -14,6 +15,7 @@ export function applyRoutes(express: Express): Express {
   express.use(Compression());
 
   express.use('/health', HealthController.router());
+  express.use('/guilds', GuildController.router());
 
   express.use((req: Request, res: Response, next: NextFunction) => {
     if (!res.writableFinished) {

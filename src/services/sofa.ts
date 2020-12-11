@@ -1,4 +1,5 @@
 import nanoDB, { DocumentScope } from 'nano';
+import { Guild } from '../models/guild';
 
 export let sofa: Sofa;
 export function setSofa(db: Sofa): void {
@@ -9,8 +10,10 @@ export class Sofa {
   nano: nanoDB.ServerScope;
 
   public get db(): {
-    } {
+    guilds: DocumentScope<Guild>
+  } {
     return {
+      guilds: this.getTable('guilds')
     };
   }
 
@@ -21,6 +24,7 @@ export class Sofa {
 
   async doMigrations(): Promise<void> {
     await Promise.all([
+      this.createTableIfNotExists('guilds')
     ]);
   }
 
