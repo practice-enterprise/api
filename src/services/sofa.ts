@@ -20,7 +20,6 @@ export class Sofa {
     };
   }
 
-
   constructor(url: string) {
     this.nano = nanoDB(url);
   }
