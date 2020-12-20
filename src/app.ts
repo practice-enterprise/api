@@ -5,10 +5,17 @@ import dotenv from 'dotenv';
 import { LoggingWinston } from '@google-cloud/logging-winston';
 import winston from 'winston';
 import { Logger } from './util/logger';
+import { initMesh } from './services/mesh';
 
 if (process.env.NODE_ENV == null || process.env.NODE_ENV === 'develepmont') {
   dotenv.config();
-  Logger.add(new winston.transports.Console({ format: winston.format.simple(), level: 'verbose' }));
+  Logger.add(new winston.transports.Console({ format: winston.format.combine(winston.format.colorize(), winston.format.simple()) , level: 'debug' }));
+  winston.addColors({
+    warn: 'yellow',
+    error: 'red',
+    crit: 'red',
+    info: 'blue'
+  });
 } else {
   Logger.add(new LoggingWinston({ projectId: process.env.PROJECT_ID, logName: 'discord-canvas', prefix: 'api' }));
   Logger.exceptions.handle(new LoggingWinston({ projectId: process.env.PROJECT_ID, logName: 'discord-canvas', prefix: 'api' }));
@@ -17,7 +24,8 @@ if (process.env.NODE_ENV == null || process.env.NODE_ENV === 'develepmont') {
 (async () => {
   setSofa(new Sofa(process.env.COUCHDB || 'http://admin:admin@localhost:5984'));
   await sofa.doMigrations();
-
+  initMesh();
+  
   const app = applyRoutes(Express());
   app.listen(process.env.PORT || 3000, () => {
     Logger.info(`listening on localhost:${process.env.PORT || 3000}`);
