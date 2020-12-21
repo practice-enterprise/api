@@ -10,13 +10,13 @@ export class NotesController {
           .catch(() => res.sendStatus(404))
           .finally(() => next());
       })
-      .put('/:channel', (req, res, next) => {
+      .put('/', (req, res, next) => {
         sofa.db.notes.insert(req.body)
           .then((d) => res.send(d.rev))
           .catch(() => res.sendStatus(500))
           .finally(() => next());
       })
-      .post('/:channel', (req, res, next) => {
+      .post('/', (req, res, next) => {
         sofa.db.notes.insert(req.body)
           .then((d) => res.send(d.rev))
           .catch(() => res.sendStatus(500))
