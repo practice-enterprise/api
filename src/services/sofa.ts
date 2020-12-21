@@ -1,5 +1,6 @@
 import nanoDB, { DocumentScope } from 'nano';
 import { Guild } from '../models/guild';
+import { Notes } from '../models/notes';
 import { Reminder } from '../models/reminder';
 
 export let sofa: Sofa;
@@ -12,11 +13,13 @@ export class Sofa {
 
   public get db(): {
     guilds: DocumentScope<Guild>,
-    reminders: DocumentScope<Reminder>
+    reminders: DocumentScope<Reminder>,
+    notes: DocumentScope<Notes>
   } {
     return {
       guilds: this.getTable('guilds'),
-      reminders: this.getTable('reminders')
+      reminders: this.getTable('reminders'),
+      notes: this.getTable('notes')
     };
   }
 
@@ -27,7 +30,8 @@ export class Sofa {
   async doMigrations(): Promise<void> {
     await Promise.all([
       this.createTableIfNotExists('guilds'),
-      this.createTableIfNotExists('reminders')
+      this.createTableIfNotExists('reminders'),
+      this.createTableIfNotExists('notes')
     ]);
   }
 

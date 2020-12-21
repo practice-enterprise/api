@@ -7,6 +7,7 @@ import { HealthController } from './controllers/health';
 import { GuildController } from './controllers/guild';
 import { ReminderController } from './controllers/reminder';
 import { MeshController } from './controllers/mesh';
+import { NotesController } from './controllers/notes';
 
 export function applyRoutes(express: Express): Express {
   express.disable('etag');
@@ -19,6 +20,7 @@ export function applyRoutes(express: Express): Express {
   express.use('/health', HealthController.router());
   express.use('/guilds', GuildController.router());
   express.use('/reminders', ReminderController.router());
+  express.use('/notes', NotesController.router());
   express.use('/mesh', MeshController.router());
 
   express.use((req: Request, res: Response, next: NextFunction) => {
