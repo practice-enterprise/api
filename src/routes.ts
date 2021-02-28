@@ -8,6 +8,7 @@ import { GuildController } from './controllers/guild';
 import { ReminderController } from './controllers/reminder';
 import { MeshController } from './controllers/mesh';
 import { NotesController } from './controllers/notes';
+import { ConfigController } from './controllers/config';
 
 export function applyRoutes(express: Express): Express {
   express.disable('etag');
@@ -18,6 +19,7 @@ export function applyRoutes(express: Express): Express {
   express.use(Compression());
 
   express.use('/health', HealthController.router());
+  express.use('/config', ConfigController.router());
   express.use('/guilds', GuildController.router());
   express.use('/reminders', ReminderController.router());
   express.use('/notes', NotesController.router());
