@@ -7,7 +7,7 @@ export class ConfigController {
       .get('/', (req, res, next) => {
         sofa.db.config.list({ include_docs: true})
           .then((config) => res.send(config.rows.map((d) => d.doc).filter(row => row !== undefined)))
-          .catch()
+          .catch(() => res.sendStatus(500))
           .finally(() => next());
       })
       .put('/', (req, res, next) => {
