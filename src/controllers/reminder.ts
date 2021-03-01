@@ -7,7 +7,7 @@ export class ReminderController {
       .get('/', async (req, res, next) => {
         sofa.db.reminders.list({ include_docs: true })
           .then((reminders) => res.send(reminders.rows.map((d) => d.doc).filter(r => r !== undefined)))
-          .catch()
+          .catch(() => res.sendStatus(500))
           .finally(() => next());
       })
       .put('/', (req, res, next) => {
