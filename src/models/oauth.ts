@@ -1,0 +1,17 @@
+/**https://discord.com/developers/docs/topics/oauth2#authorization-code-grant-access-token-response */
+export interface DiscordToken {
+  access_token: string,
+  token_type: string,
+  expires_in: number,
+  refresh_token: string, //Always returned also when refreshing (new refresh token)
+  scope: string
+}
+
+/**https://canvas.instructure.com/doc/api/file.oauth_endpoints.html */
+export interface CanvasToken {
+  access_token: string,
+  token_type: string,
+  user: {id: number | string, name: string},
+  refresh_token?: string, // Not returned if asking for a refresh token
+  expires_in: number
+}
