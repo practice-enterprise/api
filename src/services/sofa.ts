@@ -1,3 +1,4 @@
+import { User } from '../models/users'
 import nanoDB, { DocumentScope } from 'nano';
 import { CanvasInstance } from '../models/canvas';
 import { Config } from '../models/config';
@@ -19,6 +20,7 @@ export class Sofa {
     guilds: DocumentScope<Guild>,
     notes: DocumentScope<Notes>,
     reminders: DocumentScope<Reminder>,
+    users: DocumentScope<User>,
   } {
     return {
       canvas: this.getTable('canvas'),
@@ -26,6 +28,7 @@ export class Sofa {
       guilds: this.getTable('guilds'),
       notes: this.getTable('notes'),
       reminders: this.getTable('reminders'),
+      users: this.getTable('users'),
     };
   }
 
@@ -40,6 +43,7 @@ export class Sofa {
       this.createTableIfNotExists('guilds'),
       this.createTableIfNotExists('notes'),
       this.createTableIfNotExists('reminders'),
+      this.createTableIfNotExists('users'),
     ]);
   }
 
