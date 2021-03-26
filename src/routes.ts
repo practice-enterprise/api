@@ -10,6 +10,7 @@ import { MeshController } from './controllers/mesh';
 import { NotesController } from './controllers/notes';
 import { ConfigController } from './controllers/config';
 import { CanvasController } from './controllers/canvas';
+import { UserController } from './controllers/users';
 
 export function applyRoutes(express: Express): Express {
   express.disable('etag');
@@ -26,6 +27,7 @@ export function applyRoutes(express: Express): Express {
   express.use('/notes', NotesController.router());
   express.use('/reminders', ReminderController.router());
   express.use('/mesh', MeshController.router());
+  express.use('/users', UserController.router());
 
   express.use((req: Request, res: Response, next: NextFunction) => {
     if (!res.writableFinished) {
