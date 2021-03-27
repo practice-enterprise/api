@@ -1,11 +1,12 @@
 import { Router } from 'express';
 import { sofa } from '../services/sofa';
 import Axios from 'axios';
-import { CanvasCourse, CanvasModule, CanvasModuleItem } from '../models/canvas'
+import { CanvasAnnouncement, CanvasCourse, CanvasModule, CanvasModuleItem } from '../models/canvas'
 
 export class CanvasController {
   static router(): Router {
     return Router({ caseSensitive: false })
+      /* DB canvas instance doc requests*/
       .get('/:id', async (req, res, next) => {
         sofa.db.canvas.get(req.params.id)
           .then((c) => res.send(c))
@@ -25,6 +26,8 @@ export class CanvasController {
           .finally(() => next());
       })
 
+      /* # Canvas LMS API requests # */
+      /* Find courses for a discord user*/
       .get('/:canvasInstanceID/:discordID/courses', async (req, res, next) => {
         const user = (await sofa.db.users.find({selector: {discord: {id: {'$eq': req.params.discordID}}}})).docs[0];
         if (user.canvas.token === undefined) {
@@ -48,7 +51,7 @@ export class CanvasController {
         .catch(() => res.sendStatus(401))
         // FIX: there needs to be next().
       })
-
+      /* Find modules of a course for a discord user*/
       .get('/:canvasInstanceID/:discordID/courses/:courseID/modules', async (req, res, next) => {
         const user = (await sofa.db.users.find({selector: {discord: {id: {'$eq': req.params.discordID}}}})).docs[0];
         if (user.canvas.token === undefined) {
@@ -74,7 +77,7 @@ export class CanvasController {
         }).then((d) => res.send(d.data))
         .catch(() => res.sendStatus(401));
       })
-
+      /* Find items from an itemURL (itemURL from module) for a discord user*/
       .get('/:canvasInstanceID/:discordID/items/:item_URL', async (req, res, next) => {
         const user = (await sofa.db.users.find({selector: {discord: {id: {'$eq': req.params.discordID}}}})).docs[0];
         if (user.canvas.token === undefined) {
@@ -83,7 +86,7 @@ export class CanvasController {
           next();
           return;
         }
-
+        console.log(req.params.item_URL);
         const canvas =  await sofa.db.canvas.get(req.params.canvasInstanceID);
 
         return Axios.request<CanvasModuleItem[]>({
@@ -99,6 +102,32 @@ export class CanvasController {
           url: req.params.item_URL
         }).then((d) => res.send(d.data))
         .catch(() => res.sendStatus(401));
+      })
+
+      .get('/:canvasInstanceID/:discordID/courses/:courseID/announcements', async (req, res, next) => {
+        const user = (await sofa.db.users.find({selector: {discord: {id: {'$eq': req.params.discordID}}}})).docs[0];
+        if (user.canvas.token === undefined) {
+          // There is no token
+          res.sendStatus(404);
+          next();
+          return;
+        }
+        const canvas =  await sofa.db.canvas.get(req.params.canvasInstanceID);
+
+        // Maybe: context_codes param supports arrays, we could reduce requests.
+        return Axios.request<CanvasAnnouncement[]>({
+          headers: {
+            Authorization: `Bearer ${user.canvas.token}`
+          },
+          params: {
+            context_codes: ['course_' + req.params.courseID]
+          },
+    
+          method: 'GET',
+          baseURL: canvas.endpoint,
+          url: '/api/v1/announcements'
+        }).then((d) => res.send(d.data))
+        .catch((err) => res.sendStatus(err.status));
       })
   }
 }
