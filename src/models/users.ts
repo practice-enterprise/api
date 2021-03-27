@@ -2,10 +2,11 @@ export interface User {
   _id: string,
   discord: {
     id: string,
-    token: string | null,
-  }
+    token?: string,
+  },
   canvas: {
-    id: string | null,
-    token: string | null,
-  }
+    id?: string,
+    token?: string,
+  },
+  courses?: string[],
 }
