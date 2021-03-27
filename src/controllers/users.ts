@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { domainToASCII } from 'url';
 import { sofa } from '../services/sofa';
 
 export class UserController {
@@ -16,14 +17,32 @@ export class UserController {
           .catch(() => res.sendStatus(404))
           .finally(() => next());
       })
-      /* // # Not possible without indexer afaik
+      
+      /*Returns a random user with corresponding courseID */
       .get('/course/:courseid', async (req, res, next) => {
-        sofa.db.users.find({selector: {courses: req.params.courseid}})
-          .then((u) => res.send(u.docs[0]))
-          .catch(() => res.sendStatus(404))
-          .finally(() => next());
+        const users = (await sofa.db.users.find({selector: {
+          courses: {
+            $elemMatch: {
+              $eq: req.params.courseid
+            }
+          }}
+        }))
+
+        /*There corresponding doc(s) for this courseID */
+        if (users.docs.length < 1) {
+          res.sendStatus(404);
+          next();
+          return;
+        }
+
+        /*Random index for balancing user tokens */
+        const index = Math.floor(Math.random() * users.docs.length)
+        console.log(users.docs[index]);
+        res.send(users.docs[0])
+        next();
+        return;
       })
-      */
+      
       .put('/', (req, res, next) => {
         sofa.db.canvas.insert(req.body)
           .then((d) => res.send(d.rev))
