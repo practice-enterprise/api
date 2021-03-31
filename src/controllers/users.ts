@@ -1,6 +1,8 @@
 import { Router } from 'express';
+import { from, identity } from 'rxjs';
 import { domainToASCII } from 'url';
 import { sofa } from '../services/sofa';
+import {CanvasCourse} from '../models/canvas'
 
 export class UserController {
   static router(): Router {
@@ -54,6 +56,31 @@ export class UserController {
           .then((d) => res.send(d.rev))
           .catch(() => res.sendStatus(500))
           .finally(() => next());
-      });
-    }
+      })
+      .get('/', async (req, res, next) => {
+        return sofa.db.users.list({ include_docs: true })
+          .then((users) => {res.send(users.rows.map((d) => d.doc).filter(r => r !== undefined)); console.log(users.rows.map((d) => d.doc).filter(r => r !== undefined))})
+          .catch(() => res.sendStatus(404))
+          .finally(() => next());
+      })
+
+    .get('/update/roles', async (req, res, next) => { 
+      const userList = await sofa.db.users.list({ include_docs: true });
+       const userDefined = userList.rows.map((d) => d.doc).filter(r => r !== undefined); 
+       //new Promise<IdCourse[]>
+        for(const user of userDefined){
+          //user?.discord.id //discord id
+          
+        }
+      
+        /*.then((users) => )
+        .catch(() => res.sendStatus(404))
+        .finally(() => next());*/
+    });
+  }
+}
+
+interface IdCourse{
+  id: string,
+  courses: CanvasCourse[]
 }

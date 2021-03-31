@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { sofa } from '../services/sofa';
 import Axios from 'axios';
 import { CanvasAnnouncement, CanvasCourse, CanvasModule, CanvasModuleItem } from '../models/canvas'
+import { UserController } from './users';
 
 export class CanvasController {
   static router(): Router {
@@ -129,5 +130,9 @@ export class CanvasController {
         }).then((d) => res.send(d.data))
         .catch((err) => res.sendStatus(err.status));
       })
+
+      
+
+      
   }
 }
