@@ -3,6 +3,7 @@ import { from, identity } from 'rxjs';
 import { domainToASCII } from 'url';
 import { sofa } from '../services/sofa';
 import {CanvasCourse} from '../models/canvas'
+import { CanvasController } from './canvas';
 
 export class UserController {
   static router(): Router {
@@ -67,15 +68,24 @@ export class UserController {
     .get('/update/roles', async (req, res, next) => { 
       const userList = await sofa.db.users.list({ include_docs: true });
        const userDefined = userList.rows.map((d) => d.doc).filter(r => r !== undefined); 
-       //new Promise<IdCourse[]>
+       const idCourse: IdCourse[] = []
+      
         for(const user of userDefined){
           //user?.discord.id //discord id
-          
+          if(user != undefined)
+          {
+            //TODO, get rid of hardcoded canvasInstanceID
+            const courses = await CanvasController.getCourses(next, user.discord.id, 'a40d37b54851efbcadb35e68bf03d698')
+            .catch(()=>console.info('could not get courses for user' + user.discord.id)).then((res) =>{if(res != undefined) {return res.data;} else {return undefined;}});
+            //console.log(courses);
+            if(courses != undefined){
+              idCourse.push({'id': user.discord.id, 'courses': courses});
+            }
+          }
         }
-      
-        /*.then((users) => )
-        .catch(() => res.sendStatus(404))
-        .finally(() => next());*/
+        console.log(idCourse);
+        res.send(idCourse);
+        next();
     });
   }
 }
