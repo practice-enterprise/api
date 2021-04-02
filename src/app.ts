@@ -5,7 +5,6 @@ import dotenv from 'dotenv';
 import { LoggingWinston } from '@google-cloud/logging-winston';
 import winston from 'winston';
 import { Logger } from './util/logger';
-import { initMesh } from './services/mesh';
 import socketIO from 'socket.io';
 import { ShardManager } from './services/shard';
 

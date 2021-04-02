@@ -1,4 +1,5 @@
 import { Server, Socket } from 'socket.io';
+import { getShardId } from '../util';
 import { Logger } from '../util/logger';
 
 interface Shard {
@@ -55,5 +56,14 @@ export class ShardManager {
       shard.number = index;
       index++;
     }
+  }
+
+  sendForGuild(guild: string, event: string, message: any): void {
+    const shard = getShardId(guild, this.targetShards);
+    this.shards.find(s => s.number == shard)?.socket.send(event, message);
+  }
+
+  sendAll(event: string, message: any): void {
+    this.server.emit(event, message);
   }
 }
