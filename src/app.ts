@@ -22,6 +22,35 @@ if (process.env.NODE_ENV == null || process.env.NODE_ENV === 'develepmont') {
   Logger.exceptions.handle(new LoggingWinston({ projectId: process.env.PROJECT_ID, logName: 'discord-canvas', prefix: 'api' }));
 }
 
+// Discord dotenv
+if ( process.env.D_CLIENT_ID == null){
+  console.error('Discord client ID is not defined (D_CLIENT_ID in dotenv)');
+  process.exit(-1)
+}
+if ( process.env.D_CLIENT_SECRET == null){
+  console.error('Discord client secret is not defined (D_CLIENT_SECRET in dotenv)');
+  process.exit(-1)
+}
+if ( process.env.D_REDIRECT_URI == null){
+  console.error('Discord redirect URI is not defined (D_REDIRECT_URI in dotenv)');
+  process.exit(-1)
+}
+
+//Canvas dotenv
+if ( process.env.C_CLIENT_ID == null){
+  console.error('Canvas client ID is not defined (C_CLIENT_ID in dotenv)');
+  process.exit(-1)
+}
+if ( process.env.C_CLIENT_SECRET == null){
+  console.error('Canvas client secret is not defined (C_CLIENT_SECRET in dotenv)');
+  process.exit(-1)
+}
+if ( process.env.C_REDIRECT_URI == null){
+  console.error('Canvas redirect URI is not defined (C_REDIRECT_URI in dotenv)');
+  process.exit(-1)
+}
+
+
 (async () => {
   setSofa(new Sofa(process.env.COUCHDB || 'http://admin:admin@localhost:5984'));
   await sofa.doMigrations();
