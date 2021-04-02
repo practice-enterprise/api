@@ -1,11 +1,7 @@
 export interface Reminder {
-  _id: string;
+  id: string,
+  idType: 'channel' | 'user'
+  guild?: string;
   date: Date,
   content: string;
-  target: {
-    user: string
-  } | {
-    guild: string,
-    channel: string
-  }
 }

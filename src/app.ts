@@ -1,4 +1,3 @@
-import { setSofa, Sofa, sofa } from './services/sofa';
 import Express from 'express';
 import { applyRoutes } from './routes';
 import dotenv from 'dotenv';
@@ -7,6 +6,8 @@ import winston from 'winston';
 import { Logger } from './util/logger';
 import socketIO from 'socket.io';
 import { ShardManager } from './services/shard';
+import { Firestore } from '@google-cloud/firestore';
+import { Collections, db } from './services/database';
 
 if (process.env.NODE_ENV == null || process.env.NODE_ENV === 'develepmont') {
   dotenv.config();
@@ -23,9 +24,6 @@ if (process.env.NODE_ENV == null || process.env.NODE_ENV === 'develepmont') {
 }
 
 (async () => {
-  setSofa(new Sofa(process.env.COUCHDB || 'http://admin:admin@localhost:5984'));
-  await sofa.doMigrations();
-    
   const app = applyRoutes(Express());
   const server = require('http').createServer(app);
   const io = new socketIO.Server(server);
