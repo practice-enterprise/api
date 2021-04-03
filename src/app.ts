@@ -6,7 +6,7 @@ import { LoggingWinston } from '@google-cloud/logging-winston';
 import winston from 'winston';
 import { Logger } from './util/logger';
 import socketIO from 'socket.io';
-import { ShardManager } from './services/shard';
+import { SocketManager } from './services/socket';
 
 if (process.env.NODE_ENV == null || process.env.NODE_ENV === 'develepmont') {
   dotenv.config();
@@ -50,16 +50,17 @@ if ( process.env.C_REDIRECT_URI == null){
   process.exit(-1)
 }
 
+export let WebSocket: SocketManager | undefined = undefined;
 
 (async () => {
   setSofa(new Sofa(process.env.COUCHDB || 'http://admin:admin@localhost:5984'));
   await sofa.doMigrations();
-    
+  
   const app = applyRoutes(Express());
   const server = require('http').createServer(app);
   const io = new socketIO.Server(server);
-  const shardManager = new ShardManager(io);
-
+  WebSocket = new SocketManager(io);
+  
   server.listen(process.env.PORT || 3000, () => {
     Logger.info(`listening on localhost:${process.env.PORT || 3000}`);
   });
