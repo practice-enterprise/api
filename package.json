@@ -25,7 +25,9 @@
   },
   "dependencies": {
     "@google-cloud/logging-winston": "^4.0.2",
+    "@types/socket.io": "^2.1.13",
     "@types/uuid": "^8.3.0",
+    "@types/winston": "^2.4.4",
     "axios": "^0.21.1",
     "body-parser": "^1.19.0",
     "compression": "^1.7.4",
@@ -34,6 +36,7 @@
     "express": "^4.17.1",
     "nano": "^9.0.1",
     "rxjs": "^6.6.3",
+    "socket.io": "^4.0.0",
     "uuid": "^8.3.2",
     "winston": "^3.3.3"
   }
