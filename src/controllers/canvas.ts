@@ -30,9 +30,7 @@ export class CanvasController {
       /* # Canvas LMS API requests # */
       /* Find courses for a discord user*/
       .get('/:canvasInstanceID/:discordID/courses', async (req, res, next) => {
-        this.getCourses(next, req.params.discordID, req.params.canvasInstanceID)
-        .then((d) => {if(d != undefined){res.send(d.data)} else {res.sendStatus(404)}})
-        .catch(() => res.sendStatus(401))
+        res.send(await this.getCourses(req.params.discordID, req.params.canvasInstanceID));
       // FIX: there needs to be next().
       })
 
@@ -116,7 +114,7 @@ export class CanvasController {
       });
   }
 
-  static async getCourses(next: NextFunction, discordID: string, canvasInstanceID: string) {
+  static async getCourses(discordID: string, canvasInstanceID: string): Promise<CanvasCourse[] | undefined> {
     const user = (await sofa.db.users.find({ selector: { discord: { id: { '$eq': discordID } } } })).docs[0];
     if (user.canvas.token === undefined) {
       // There is no token
@@ -133,7 +131,9 @@ export class CanvasController {
       method: 'GET',
       baseURL: canvas.endpoint,
       url: '/api/v1/courses'
-    })
+    }).then((res) => res.data)
+      .catch(() => undefined);
+    //TODO: handle refresh tokens etc
   }
 }
 

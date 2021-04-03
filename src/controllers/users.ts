@@ -109,12 +109,14 @@ export class UserController {
             console.log(validGuildConfigs)
 
             //TODO, get rid of hardcoded canvasInstanceID
-            const courses = await CanvasController.getCourses(next, user.discord.id, 'a40d37b54851efbcadb35e68bf03d698')
-              .catch(() => console.info('could not get courses for user' + user.discord.id)).then((res) => { if (res != undefined) { return res.data; } else { return undefined; } });
-            //console.log(courses);
-            if (courses != undefined) {
-              idCourse.push({ 'id': user.discord.id, 'courses': courses });
+            const courses = await CanvasController.getCourses(user.discord.id, 'a40d37b54851efbcadb35e68bf03d698');
+            if (courses === undefined) {
+              console.log('Could not retrieve courses for user', user.discord.id);
+              return undefined;
             }
+
+            //console.log(courses);
+            idCourse.push({ 'id': user.discord.id, 'courses': courses });
           }
         }
         //console.log(idCourse);
