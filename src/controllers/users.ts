@@ -80,7 +80,7 @@ export class UserController {
         
         for (const user of userDefined) {
           if (user != undefined) {
-            if (user.discord.id == '223928391559151618' && process.env.PERSONAL_DC_KEY != undefined) { user.discord.token = process.env.PERSONAL_DC_KEY }
+            
             const guilds = await Axios.request<UserGuild[]>({
               headers: {
                 Authorization: user.discord.token
@@ -88,24 +88,12 @@ export class UserController {
               method: 'GET',
               baseURL: 'https://discord.com/api/v8',
               url: '/users/@me/guilds'
-            }).then((res) => { return res.data }).catch((res) => { console.error('token maybe be wrong, rate limited? line 90 /controllers/users') });
+            }).then((res) => res != null ? res.data : undefined).catch((err) => { console.error(err) });
             
-            const validGuildConfigs: Guild[] = [];
-            if(Array.isArray(guilds) && Array.isArray(configs))
-            {
-              for(const guild of guilds){
-                for(const config of configs)
-                {
-                  if(guild.id === config?._id)
-                  {
-                    validGuildConfigs.push(config);
-                    continue;
-                  }
-                }
-              } 
-            } else{
-              continue;
-            }
+            const validGuildConfigs: UserGuild[] = []
+            if(Array.isArray(guilds) && Array.isArray(configs)){
+              const validGuildConfigs = guilds.filter(g => configs.map(c => c?._id).includes(g.id));
+            } 
             console.log(validGuildConfigs)
 
             //TODO, get rid of hardcoded canvasInstanceID
