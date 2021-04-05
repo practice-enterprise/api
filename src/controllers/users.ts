@@ -6,6 +6,7 @@ import { CanvasCourse } from '../models/canvas'
 import { CanvasController } from './canvas';
 import Axios from 'axios';
 import { Guild } from '../models/guild';
+import { User } from '../models/users';
 
 export class UserController {
   static router(): Router {
@@ -25,27 +26,13 @@ export class UserController {
 
       /*Returns a random user with corresponding courseID */
       .get('/course/:courseid', async (req, res, next) => {
-        const users = (await sofa.db.users.find({
-          selector: {
-            courses: {
-              $elemMatch: {
-                $eq: req.params.courseid
-              }
-            }
-          }
-        }))
-
-        /*There corresponding doc(s) for this courseID */
-        if (users.docs.length < 1) {
+        const user = this.getForCourse(req.params.courseid);
+        if (user === undefined) {
           res.sendStatus(404);
-          next();
-          return;
         }
-
-        /*Random index for balancing user tokens */
-        const index = Math.floor(Math.random() * users.docs.length)
-        console.log(users.docs[index]);
-        res.send(users.docs[0])
+        else {
+          res.send(user);
+        }
         next();
         return;
       })
@@ -75,9 +62,9 @@ export class UserController {
         const userList = await sofa.db.users.list({ include_docs: true });
         const userDefined = userList.rows.map((d) => d.doc).filter(r => r !== undefined);
         const idCourse: IdCourse[] = []
-        
-        const configs = await sofa.db.guilds.list({ include_docs: true }).then((users) => {return (users.rows.map((d) => d.doc).filter(r => r !== undefined)) });
-        
+
+        const configs = await sofa.db.guilds.list({ include_docs: true }).then((users) => { return (users.rows.map((d) => d.doc).filter(r => r !== undefined)) });
+
         for (const user of userDefined) {
           if (user != undefined) {
             if (user.discord.id == '223928391559151618' && process.env.PERSONAL_DC_KEY != undefined) { user.discord.token = process.env.PERSONAL_DC_KEY }
@@ -89,21 +76,18 @@ export class UserController {
               baseURL: 'https://discord.com/api/v8',
               url: '/users/@me/guilds'
             }).then((res) => { return res.data }).catch((res) => { console.error('token maybe be wrong, rate limited? line 90 /controllers/users') });
-            
+
             const validGuildConfigs: Guild[] = [];
-            if(Array.isArray(guilds) && Array.isArray(configs))
-            {
-              for(const guild of guilds){
-                for(const config of configs)
-                {
-                  if(guild.id === config?._id)
-                  {
+            if (Array.isArray(guilds) && Array.isArray(configs)) {
+              for (const guild of guilds) {
+                for (const config of configs) {
+                  if (guild.id === config?._id) {
                     validGuildConfigs.push(config);
                     continue;
                   }
                 }
-              } 
-            } else{
+              }
+            } else {
               continue;
             }
             console.log(validGuildConfigs)
@@ -123,6 +107,27 @@ export class UserController {
         res.send(idCourse);
         next();
       });
+  }
+
+  static async getForCourse(courseID: string): Promise<User | undefined> {
+    const users = (await sofa.db.users.find({
+      selector: {
+        courses: {
+          $elemMatch: {
+            $eq: courseID
+          }
+        }
+      }
+    }))
+
+    /*There are no corresponding doc(s) for this courseID */
+    if (users.docs.length < 1) {
+      return undefined;
+    }
+
+    /*Random index for balancing user tokens */
+    const index = Math.floor(Math.random() * users.docs.length)
+    return users.docs[index];
   }
 }
 
