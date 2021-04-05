@@ -12,7 +12,7 @@ enum OpCode {
   disconnect,
 }
 
-export class ShardManager {
+export class SocketManager {
   shards: Shard[] = [];
   targetShards: number = 1;
 
@@ -27,7 +27,7 @@ export class ShardManager {
     });
   }
 
-  initializeSocket(shard: Shard): void {
+  private initializeSocket(shard: Shard): void {
     shard.socket.on('disconnecting', (reason) => {
       Logger.warn(`shard with number ${shard.number || '(not assigned)'} is disconnecting due to: ${reason}`);
       const index = this.shards.indexOf(shard);
@@ -38,13 +38,13 @@ export class ShardManager {
     })
   }
 
-  evaluateState(): void {
+  private evaluateState(): void {
     // TODO: only reassign shards when there are meaningfull changes
     this.targetShards = this.shards.length;
     this.reassignShards();
   }
 
-  reassignShards(): void {
+  private reassignShards(): void {
     Logger.info(`reassigning shards to new target of ${this.targetShards} shards`);
     let index = 0;
     const total = this.shards.length;
