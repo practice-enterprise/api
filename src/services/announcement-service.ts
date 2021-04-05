@@ -1,13 +1,12 @@
 import Axios from "axios";
 import { CanvasAnnouncement } from "../models/canvas";
-import { sofa } from "./sofa";
 import TurndownService from 'turndown';
 import { CanvasController } from "../controllers/canvas";
 import { MessageEmbed } from "discord.js";
-import { Guild } from "../models/guild";
 import { stringify } from "querystring";
 import { UserController } from "../controllers/users";
 import { WebSocket } from "../app";
+import { Collections, db } from "./database";
 
 export class AnnouncementService {
   static async getAnnouncements(canvasInstanceID: string, courseID: string): Promise<CanvasAnnouncement[] | undefined> {
@@ -22,7 +21,10 @@ export class AnnouncementService {
       console.error('No token defined')
       return undefined;
     }
-    const canvas = await sofa.db.canvas.get(canvasInstanceID);
+    const canvas = (await db.collection(Collections.canvas).doc(canvasInstanceID).get()).data();
+    if (!canvas) {
+      return undefined;
+    }
     /*
       // # This call has a problem where it will only show the last 14 days or since a start date 
       // # (which presumely) can't be before the course creation date.
@@ -93,30 +95,25 @@ export class AnnouncementService {
   // guildID: string, CanvasInstanceID: string
   static initAnnouncementJob(): NodeJS.Timeout {
     return setInterval(async () => {
-      const guilds = (await sofa.db.guilds.list({ include_docs: true })).rows.map((d) => d.doc).filter((row) => row !== undefined);
+      const guilds = (await db.collection(Collections.guilds).get()).docs.map((d) => d.data());
       // FIX: This for loop can prob be done better or differently.
       for (let i = 0; i < guilds.length; i++) {
         const guildID = guilds[i]?._id;
-        const CanvasInstanceID = guilds[i]?.canvasInstanceID;
+        const canvasInstanceID = guilds[i]?.canvasInstanceID;
 
-        if (guildID === undefined || CanvasInstanceID === undefined) {
+        if (guildID === undefined || canvasInstanceID === undefined) {
           continue;
         }
         console.log('getting canvas and config');
-        const canvas = await sofa.db.canvas.get(CanvasInstanceID)
-          .then((c) => c)
-          .catch(() => undefined);
+        const canvas = (await db.collection(Collections.canvas).doc(canvasInstanceID).get()).data();
         /*change => is just guild in loop */
-        const guildConfig = await sofa.db.guilds.get(guildID)
-          .then((g: Guild) => g)
-          .catch(() => undefined);
-
+        const guildConfig = (await db.collection(Collections.guilds).doc(guildID).get()).data();
         if (guildConfig === undefined) {
           console.error(`Guildconfig with id ${guildID} is undefined.`);
           return;
         }
         if (canvas === undefined) {
-          console.error(`CanvasInstance with id ${CanvasInstanceID} is undefined.`);
+          console.error(`CanvasInstance with id ${canvasInstanceID} is undefined.`);
           return;
         }
         console.log('Canvas domain: ', canvas.endpoint);
@@ -138,7 +135,7 @@ export class AnnouncementService {
 
           // FIX: The random user we took may not have a token. This shouldn't be the case since otherwise the user wouldn't have courses assinged in the first place.
 
-          const announcements = await this.getAnnouncements(CanvasInstanceID, courseID);
+          const announcements = await this.getAnnouncements(canvasInstanceID, courseID);
           if (announcements === undefined) {
             throw new Error('Announcements undefined. Likely invalid or undefined token from users.');
           }
@@ -161,7 +158,7 @@ export class AnnouncementService {
           if (canvas.lastAnnounce[courseID] === undefined) {
             console.log('No lastAnnounceID set. Posting last announcement and setting ID.');
 
-            const embed = await this.buildAnnouncementEmbed(announcements[0], courseID, CanvasInstanceID, user.discord.id);
+            const embed = await this.buildAnnouncementEmbed(announcements[0], courseID, canvasInstanceID, user.discord.id);
 
             // Send announcement
             const data = {
@@ -188,7 +185,7 @@ export class AnnouncementService {
             for (let i = index - 1; i >= 0; i--) {
               console.log('Posting: ' + announcements[i].title);
 
-              const embed = await this.buildAnnouncementEmbed(announcements[i], courseID, CanvasInstanceID, user.discord.id);
+              const embed = await this.buildAnnouncementEmbed(announcements[i], courseID, canvasInstanceID, user.discord.id);
 
               // Send 1 new announcement
               const data = {
@@ -202,7 +199,7 @@ export class AnnouncementService {
             canvas.lastAnnounce[courseID] = announcements[0].id;
           }
         }
-        sofa.db.canvas.insert(canvas)
+        db.collection(Collections.canvas).doc(canvas.id).set(canvas)
           .catch((err) => console.error('Couldn\'t update lastAnnounce ID(s). Err: ' + err));
       }
     }, 60000);

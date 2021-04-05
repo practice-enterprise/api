@@ -1,26 +1,21 @@
 import { Router } from 'express';
-import { from, identity } from 'rxjs';
-import { domainToASCII } from 'url';
-import { sofa } from '../services/sofa';
 import { CanvasCourse } from '../models/canvas'
 import { CanvasController } from './canvas';
 import Axios from 'axios';
-import { Guild } from '../models/guild';
 import { User } from '../models/users';
+import { Collections, db } from '../services/database';
 
 export class UserController {
   static router(): Router {
     return Router({ caseSensitive: false })
       .get('/canvas/:id', async (req, res, next) => {
-        sofa.db.users.find({ selector: { canvas: { id: { '$eq': req.params.id } } } })
-          .then((u) => res.send(u.docs[0]))
-          .catch(() => res.sendStatus(404))
+        db.collection(Collections.users).where('canvas.id', '==', req.params.id).get()
+          .then((snap) => snap.empty ? res.sendStatus(404) : res.send(snap.docs[0].data()))
           .finally(() => next());
       })
       .get('/discord/:id', async (req, res, next) => {
-        sofa.db.users.find({ selector: { discord: { id: { '$eq': req.params.id } } } })
-          .then((u) => res.send(u.docs[0]))
-          .catch(() => res.sendStatus(404))
+        db.collection(Collections.users).where('discord.id', '==', req.params.id).get()
+          .then((snap) => snap.empty ? res.sendStatus(404) : res.send(snap.docs[0].data()))
           .finally(() => next());
       })
 
@@ -36,19 +31,6 @@ export class UserController {
         next();
         return;
       })
-
-      .put('/', (req, res, next) => {
-        sofa.db.canvas.insert(req.body)
-          .then((d) => res.send(d.rev))
-          .catch(() => res.sendStatus(500))
-          .finally(() => next());
-      })
-      .post('/', (req, res, next) => {
-        sofa.db.canvas.insert(req.body)
-          .then((d) => res.send(d.rev))
-          .catch(() => res.sendStatus(500))
-          .finally(() => next());
-      })
       /* not implemented because of security reasons
       .get('/', async (req, res, next) => {
         return sofa.db.users.list({ include_docs: true })
@@ -58,14 +40,11 @@ export class UserController {
       })*/
 
       .get('/update/roles', async (req, res, next) => {
-        console.log('update api call');
-        const userList = await sofa.db.users.list({ include_docs: true });
-        const userDefined = userList.rows.map((d) => d.doc).filter(r => r !== undefined);
+        const users = (await db.collection(Collections.users).get()).docs.map((d) => d.data());
+        const configs = (await db.collection(Collections.guilds).get()).docs.map((d) => d.data());
+        
         const idCourse: IdCourse[] = []
-
-        const configs = await sofa.db.guilds.list({ include_docs: true }).then((users) => { return (users.rows.map((d) => d.doc).filter(r => r !== undefined)) });
-
-        for (const user of userDefined) {
+        for (const user of users) {
           if (user != undefined) {
             
             const guilds = await Axios.request<UserGuild[]>({
@@ -101,24 +80,15 @@ export class UserController {
   }
 
   static async getForCourse(courseID: string): Promise<User | undefined> {
-    const users = (await sofa.db.users.find({
-      selector: {
-        courses: {
-          $elemMatch: {
-            $eq: courseID
-          }
-        }
-      }
-    }))
-
-    /*There are no corresponding doc(s) for this courseID */
-    if (users.docs.length < 1) {
+    const users = (await db.collection(Collections.users).where('courses', 'array-contains', courseID).get()).docs.map((d) => d.data());
+    /*There are no corresponding users for this courseID */
+    if (users.length < 1) {
       return undefined;
     }
 
     /*Random index for balancing user tokens */
-    const index = Math.floor(Math.random() * users.docs.length)
-    return users.docs[index];
+    const index = Math.floor(Math.random() * users.length)
+    return users[index] as User;
   }
 }
 
