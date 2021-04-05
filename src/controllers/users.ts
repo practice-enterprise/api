@@ -1,22 +1,20 @@
 import { Router } from 'express';
-import { sofa } from '../services/sofa';
 import { CanvasCourse } from '../models/canvas'
 import { CanvasController } from './canvas';
 import Axios from 'axios';
+import { User } from '../models/users';
+import { Collections, db } from '../services/database';
 
 export class UserController {
   static router(): Router {
     return Router({ caseSensitive: false })
       // Remove or move
       .get('/update/roles', async (req, res, next) => {
-        console.log('update api call');
-        const userList = await sofa.db.users.list({ include_docs: true });
-        const userDefined = userList.rows.map((d) => d.doc).filter(r => r !== undefined);
+        const users = (await db.collection(Collections.users).get()).docs.map((d) => d.data());
+        const configs = (await db.collection(Collections.guilds).get()).docs.map((d) => d.data());
+        
         const idCourse: IdCourse[] = []
-
-        const configs = await sofa.db.guilds.list({ include_docs: true }).then((users) => { return (users.rows.map((d) => d.doc).filter(r => r !== undefined)) });
-
-        for (const user of userDefined) {
+        for (const user of users) {
           if (user != undefined) {
             
             const guilds = await Axios.request<UserGuild[]>({

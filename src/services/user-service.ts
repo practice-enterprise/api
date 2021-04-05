@@ -1,28 +1,19 @@
-import { sofa } from "./sofa";
 import Axios from 'axios';
 import { User } from "../models/users";
 import { allCourses } from "../models/canvas";
+import { Collections, db } from "./database";
 
 export class UserService {
-  static async getForCourse(courseID: string): Promise<User | undefined> {
-    const users = (await sofa.db.users.find({
-      selector: {
-        courses: {
-          $elemMatch: {
-            $eq: courseID
-          }
-        }
-      }
-    }))
-
-    /*There are no corresponding doc(s) for this courseID */
-    if (users.docs.length < 1) {
+  static async getForCourse(courseID: number): Promise<User | undefined> {
+    const users = (await db.collection(Collections.users).where('courses', 'array-contains', courseID).get()).docs.map((d) => d.data());
+    /*There are no corresponding users for this courseID */
+    if (users.length < 1) {
       return undefined;
     }
 
     /*Random index for balancing user tokens */
-    const index = Math.floor(Math.random() * users.docs.length)
-    return users.docs[index];
+    const index = Math.floor(Math.random() * users.length)
+    return users[index] as User;
   }
 
   /**Updates all course IDs for a user. Returns true if succesful */
@@ -30,7 +21,11 @@ export class UserService {
     if ( user.canvas.token === undefined ) {
       return false
     }
-    const canvas = await sofa.db.canvas.get(canvasInstanceID);
+    const canvas =  (await db.collection(Collections.canvas).doc(canvasInstanceID).get()).data();
+    if ( canvas === undefined) {
+      return false
+    }
+    console.log('CANVAS: ', await canvas);
     const courses = await Axios.request<allCourses>({
       headers: {
         Authorization: `Bearer ${user.canvas.token}`
@@ -52,10 +47,11 @@ export class UserService {
     });
     // TODO: check refresh tokens etc
     user.courses =  courses.map((c) => c._id);
-    return sofa.db.users.insert(user)
+
+    return db.collection(Collections.users).doc(user.id).set(user)
       .then(() => true)
       .catch((err) => {
-        console.error('Failed to insert user with updated courses in db');
+        console.error('Failed to insert user with updated courses in db. Err: ',err);
         return false;
       });
   }

@@ -4,4 +4,5 @@ yarn-error.log
 **/*.env*
 .vscode/
 *.auth.json
+service.account.json
 package-lock.json

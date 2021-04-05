@@ -1,5 +1,5 @@
 export interface User {
-  _id: string,
+  id: string,
   discord: {
     id: string,
     token?: string,

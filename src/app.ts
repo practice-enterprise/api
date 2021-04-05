@@ -1,4 +1,3 @@
-import { setSofa, Sofa, sofa } from './services/sofa';
 import Express from 'express';
 import { applyRoutes } from './routes';
 import dotenv from 'dotenv';
@@ -54,9 +53,6 @@ if (process.env.C_REDIRECT_URI == null) {
 export let WebSocket: SocketManager | undefined = undefined;
 
 (async () => {
-  setSofa(new Sofa(process.env.COUCHDB || 'http://admin:admin@localhost:5984'));
-  await sofa.doMigrations();
-
   const app = applyRoutes(Express());
   const server = require('http').createServer(app);
   const io = new socketIO.Server(server);

@@ -1,13 +1,13 @@
 import { Command } from './command';
 
 export interface Guild {
-  _id: string,
+  id: string,
   prefix: string,
   canvasInstanceID: string,
   courseChannels: {
     CategoryID: string,
     //Record<courseID, channelID), courseID should be number -> parseInt()
-    channels: Record<string, string>
+    channels: Record<number, string>
   }
   info: Command[],
   commands: Command[],

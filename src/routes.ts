@@ -6,7 +6,6 @@ import Compression from 'compression';
 import { HealthController } from './controllers/health';
 import { GuildController } from './controllers/guild';
 import { ReminderController } from './controllers/reminder';
-import { MeshController } from './controllers/mesh';
 import { NotesController } from './controllers/notes';
 import { ConfigController } from './controllers/config';
 import { CanvasController } from './controllers/canvas';
@@ -27,7 +26,6 @@ export function applyRoutes(express: Express): Express {
   express.use('/guilds', GuildController.router());
   express.use('/notes', NotesController.router());
   express.use('/reminders', ReminderController.router());
-  express.use('/mesh', MeshController.router());
   express.use('/users', UserController.router());
   express.use('/oauth2', OauthController.router());
 
