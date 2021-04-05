@@ -1,4 +1,4 @@
 export interface Notes {
-  _id: string;
+  channel: string,
   notes: Record<string, string[]>;
 }
