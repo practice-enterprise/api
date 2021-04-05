@@ -2,7 +2,7 @@ export interface CanvasInstance {
   _id: string,
   endpoint: string,
   /**CourseID key + last announcement ID*/
-  lastAnnounce: Record<number, number>,
+  lastAnnounce: Record<string, number>,
 }
 
 /** https://canvas.instructure.com/doc/api/courses.html */
@@ -33,7 +33,7 @@ export interface CanvasCourse {
   term: null,
   course_progress: null,
   apply_assignment_group_weights: boolean,
-  permissions: {create_discussion_topic: boolean, create_announcement: boolean},
+  permissions: { create_discussion_topic: boolean, create_announcement: boolean },
   is_public: boolean,
   is_public_to_auth_users: boolean,
   public_syllabus: boolean,
@@ -53,8 +53,8 @@ export interface CanvasCourse {
   access_restricted_by_date: boolean,
   time_zone: string,
   blueprint: boolean,
-  blueprint_restrictions: {content: boolean, points: boolean, due_dates: boolean, availability_dates: boolean},
-  blueprint_restrictions_by_object_type: {assignment:{content: boolean, points: boolean}, wiki_page:{content: boolean}}
+  blueprint_restrictions: { content: boolean, points: boolean, due_dates: boolean, availability_dates: boolean },
+  blueprint_restrictions_by_object_type: { assignment: { content: boolean, points: boolean }, wiki_page: { content: boolean } }
 }
 
 /**https://canvas.instructure.com/doc/api/modules.html */
@@ -89,8 +89,8 @@ export interface CanvasModuleItem {
   page_url: string,
   external_url: string,
   new_tab: boolean,
-  completion_requirement: {type: string,min_score:string | number, completed:boolean},
-  content_details: {points_possible: string | number, due_at: Date | string, unlock_at: Date | string, lock_at: Date | string},
+  completion_requirement: { type: string, min_score: string | number, completed: boolean },
+  content_details: { points_possible: string | number, due_at: Date | string, unlock_at: Date | string, lock_at: Date | string },
   published: boolean
 }
 
@@ -147,8 +147,8 @@ export interface CanvasAnnouncement {
   context_code: string,
   locked_for_user: true,
   lock_info: {
-      can_view: boolean,
-      asset_string: string
+    can_view: boolean,
+    asset_string: string
   },
   lock_explanation: string,
   message: string,
