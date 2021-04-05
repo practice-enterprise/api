@@ -6,7 +6,7 @@ export interface User {
   },
   canvas: {
     id?: string,
-    token?: string,
+    token?: string
   },
   courses?: string[],
 }

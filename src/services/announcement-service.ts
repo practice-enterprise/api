@@ -6,12 +6,12 @@ import { CanvasController } from "../controllers/canvas";
 import { MessageEmbed } from "discord.js";
 import { Guild } from "../models/guild";
 import { stringify } from "querystring";
-import { UserController } from "../controllers/users";
 import { WebSocket } from "../app";
+import { UserService } from "./user-service";
 
 export class AnnouncementService {
   static async getAnnouncements(canvasInstanceID: string, courseID: string): Promise<CanvasAnnouncement[] | undefined> {
-    const user = await UserController.getForCourse(courseID);
+    const user = await UserService.getForCourse(courseID);
     if (user === undefined) {
       console.error('No user found for this course.');
       return undefined;
@@ -86,7 +86,6 @@ export class AnnouncementService {
     return embed;
   }
 
-
   // ## Checking announcements for changes
   // FIX: API checks before bot can receive events -> lastAnnounce is set to something that isn't posted
   // TODO: check rate limits. Currently 1 minute interval. We want this as low as is allowed.
@@ -129,7 +128,7 @@ export class AnnouncementService {
 
         // TODO: Delay for ratelimit
         for (const courseID in guildConfig.courseChannels.channels) {
-          const user = await UserController.getForCourse(courseID);
+          const user = await UserService.getForCourse(courseID);
 
           if (user === undefined) {
             console.error('No user was found for subject ', courseID);

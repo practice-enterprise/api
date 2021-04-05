@@ -88,35 +88,6 @@ export class CanvasController {
         }).then((d) => res.send(d.data))
           .catch(() => res.sendStatus(401));
       })
-
-    // .get('/:canvasInstanceID/:discordID/courses/:courseID/announcements', async (req, res, next) => {
-    //   const user = (await sofa.db.users.find({ selector: { discord: { id: { '$eq': req.params.discordID } } } })).docs[0];
-    //   if (user.canvas.token === undefined) {
-    //     // There is no token
-    //     res.sendStatus(404);
-    //     next();
-    //     return;
-    //   }
-    //   const canvas = await sofa.db.canvas.get(req.params.canvasInstanceID);
-    //   console.log(canvas);
-
-
-
-    //   return Axios.request<CanvasAnnouncement[]>({
-    //     headers: {
-    //       Authorization: `Bearer ${user.canvas.token}`
-    //     },
-    //     params: {
-    //       context_codes: ['course_' + req.params.courseID],
-    //       start_date: '2021-01-01'
-    //     },
-
-    //     method: 'GET',
-    //     baseURL: canvas.endpoint,
-    //     url: '/api/v1/courses'
-    //   }).then((d) => res.send(d.data))
-    //     .catch((err) => res.sendStatus(err.status));
-    // });
   }
 
   static async getCourses(discordID: string, canvasInstanceID: string): Promise<CanvasCourse[] | undefined> {
@@ -129,7 +100,7 @@ export class CanvasController {
 
     const canvas = await sofa.db.canvas.get(canvasInstanceID);
 
-    return Axios.request<CanvasCourse[]>({
+    const courses = await Axios.request<CanvasCourse[]>({
       headers: {
         Authorization: `Bearer ${user.canvas.token}`
       },
@@ -140,6 +111,10 @@ export class CanvasController {
     }).then((res) => res.data)
       .catch(() => undefined);
     //TODO: handle refresh tokens etc
+
+    if (courses !== undefined) {
+      console.log('CourseIDs: ', courses.map((c) => c.id));
+    }
   }
 }
 
