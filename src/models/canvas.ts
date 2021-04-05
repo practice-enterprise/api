@@ -155,3 +155,15 @@ export interface CanvasAnnouncement {
   subscription_hold: string,
   todo_date: null | Date | string
 }
+
+/*Canvas graphQL models */
+
+export interface allCourses {
+  data: {
+    allCourses: [
+      {
+        _id: string
+      }
+    ]
+  }
+}
