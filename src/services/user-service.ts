@@ -5,6 +5,7 @@ import { Collections, db } from "./database";
 import { DiscordService } from './discord-service';
 import { Guild } from '../models/guild';
 import { CanvasController } from '../controllers/canvas';
+import { UserGuild } from '../models/discord';
 
 export class UserService {
   static async getForCourse(courseID: number): Promise<User | undefined> {
@@ -60,16 +61,14 @@ export class UserService {
   }
 
   static async updateRoles(user: User) {
-    const configs = (await db.collection(Collections.guilds).get()).docs.map((d) => d.data()) as unknown as Guild; 
-    const guilds = DiscordService.getGuilds(user.discord.id);
+    const configs = (await db.collection(Collections.guilds).get()).docs.map((d) => d.data()) as Guild[]; 
+    const guilds = await DiscordService.getGuilds(user.discord.id);
 
     let validGuildConfigs: Guild[] = []
-    if (Array.isArray(guilds) && Array.isArray(configs)) {
-      validGuildConfigs = guilds.filter(g => configs.map(c => c.id).includes(g.id));
+    if (guilds) {
+      validGuildConfigs = configs.filter(c => guilds.map((g) => g.id).includes(c.id));
     }
-    console.log(validGuildConfigs)
 
-    //TODO, get rid of hardcoded canvasInstanceID
     const courses = await CanvasController.getCourses(user.discord.id, validGuildConfigs[0].canvasInstanceID);
     if (courses === undefined) {
       console.log('Could not retrieve courses for user', user.discord.id);
