@@ -1,29 +1,20 @@
-import { NextFunction, Router } from 'express';
-import { sofa } from '../services/sofa';
+import { Router } from 'express';
 import Axios from 'axios';
-import { CanvasAnnouncement, CanvasCourse, CanvasModule, CanvasModuleItem } from '../models/canvas'
-import { UserController } from './users';
+import { CanvasCourse, CanvasModule, CanvasModuleItem } from '../models/canvas'
+import { Collections, db } from '../services/database';
 
 export class CanvasController {
   static router(): Router {
     return Router({ caseSensitive: false })
       /* DB canvas instance doc requests*/
       .get('/:id', async (req, res, next) => {
-        sofa.db.canvas.get(req.params.id)
-          .then((c) => res.send(c))
-          .catch(() => res.sendStatus(404))
+        db.collection(Collections.canvas).doc(req.params.id)
+          .get().then((doc) => res.send(doc.data()))
           .finally(() => next());
       })
       .put('/', (req, res, next) => {
-        sofa.db.canvas.insert(req.body)
-          .then((d) => res.send(d.rev))
-          .catch(() => res.sendStatus(500))
-          .finally(() => next());
-      })
-      .post('/', (req, res, next) => {
-        sofa.db.canvas.insert(req.body)
-          .then((d) => res.send(d.rev))
-          .catch(() => res.sendStatus(500))
+        db.collection(Collections.canvas).doc(req.body.id).set(req.body)
+          .then(() => res.sendStatus(204))
           .finally(() => next());
       })
 
@@ -31,20 +22,28 @@ export class CanvasController {
       /* Find courses for a discord user*/
       .get('/:canvasInstanceID/:discordID/courses', async (req, res, next) => {
         res.send(await this.getCourses(req.params.discordID, req.params.canvasInstanceID));
-      // FIX: there needs to be next().
+        // FIX: there needs to be next().
       })
 
       /* Find modules of a course for a discord user*/
       .get('/:canvasInstanceID/:discordID/courses/:courseID/modules', async (req, res, next) => {
-        const user = (await sofa.db.users.find({ selector: { discord: { id: { '$eq': req.params.discordID } } } })).docs[0];
+        const snap = (await db.collection(Collections.users).where('discord.id', '==', req.params.discordID).get());
+        if (snap.empty) {
+          res.sendStatus(404);
+          return next();
+        }
+        const user = snap.docs[0].data();
         if (user.canvas.token === undefined) {
           // There is no token
           res.sendStatus(404);
-          next();
-          return;
+          return next();
         }
 
-        const canvas = await sofa.db.canvas.get(req.params.canvasInstanceID);
+        const canvas = (await db.collection(Collections.canvas).doc(req.params.canvasInstanceID).get()).data();
+        if (!canvas) {
+          res.sendStatus(404);
+          return next();
+        }
 
         Axios.request<CanvasModule[]>({
           headers: {
@@ -58,19 +57,30 @@ export class CanvasController {
           baseURL: canvas.endpoint,
           url: `/api/v1/courses/${req.params.courseID}/modules`
         }).then((d) => res.send(d.data))
-          .catch(() => res.sendStatus(401));
+          .catch((err) => {
+            console.log(err);
+            res.sendStatus(401)
+          });
       })
       /* Find items from an itemURL (itemURL from module) for a discord user*/
       .get('/:canvasInstanceID/:discordID/items/:item_URL', async (req, res, next) => {
-        const user = (await sofa.db.users.find({ selector: { discord: { id: { '$eq': req.params.discordID } } } })).docs[0];
+        const snap = (await db.collection(Collections.users).where('discord.id', '==', req.params.discordID).get());
+        if (snap.empty) {
+          res.sendStatus(404);
+          return next();
+        }
+        const user = snap.docs[0].data();
         if (user.canvas.token === undefined) {
           // There is no token
           res.sendStatus(404);
-          next();
-          return;
+          return next();
         }
-        console.log(req.params.item_URL);
-        const canvas = await sofa.db.canvas.get(req.params.canvasInstanceID);
+
+        const canvas = (await db.collection(Collections.canvas).doc(req.params.canvasInstanceID).get()).data();
+        if (!canvas) {
+          res.sendStatus(404);
+          return next();
+        }
 
         return Axios.request<CanvasModuleItem[]>({
           headers: {
@@ -86,44 +96,24 @@ export class CanvasController {
         }).then((d) => res.send(d.data))
           .catch(() => res.sendStatus(401));
       })
-
-      .get('/:canvasInstanceID/:discordID/courses/:courseID/announcements', async (req, res, next) => {
-        const user = (await sofa.db.users.find({ selector: { discord: { id: { '$eq': req.params.discordID } } } })).docs[0];
-        if (user.canvas.token === undefined) {
-          // There is no token
-          res.sendStatus(404);
-          next();
-          return;
-        }
-        const canvas = await sofa.db.canvas.get(req.params.canvasInstanceID);
-
-        // Maybe: context_codes param supports arrays, we could reduce requests.
-        return Axios.request<CanvasAnnouncement[]>({
-          headers: {
-            Authorization: `Bearer ${user.canvas.token}`
-          },
-          params: {
-            context_codes: ['course_' + req.params.courseID]
-          },
-
-          method: 'GET',
-          baseURL: canvas.endpoint,
-          url: '/api/v1/announcements'
-        }).then((d) => res.send(d.data))
-          .catch((err) => res.sendStatus(err.status));
-      });
   }
 
   static async getCourses(discordID: string, canvasInstanceID: string): Promise<CanvasCourse[] | undefined> {
-    const user = (await sofa.db.users.find({ selector: { discord: { id: { '$eq': discordID } } } })).docs[0];
+    const snap = (await db.collection(Collections.users).where('discord.id', '==', discordID).get());
+    if (snap.empty) {
+      return undefined;
+    }
+    const user = snap.docs[0].data();
     if (user.canvas.token === undefined) {
-      // There is no token
       return undefined;
     }
 
-    const canvas = await sofa.db.canvas.get(canvasInstanceID);
-    
-    return Axios.request<CanvasCourse[]>({
+    const canvas = (await db.collection(Collections.canvas).doc(canvasInstanceID).get()).data();
+    if (!canvas) {
+      return undefined;
+    }
+
+    const courses = await Axios.request<CanvasCourse[]>({
       headers: {
         Authorization: `Bearer ${user.canvas.token}`
       },
@@ -134,6 +124,15 @@ export class CanvasController {
     }).then((res) => res.data)
       .catch(() => undefined);
     //TODO: handle refresh tokens etc
+
+    if (courses !== undefined) {
+      // Update user courses in DB
+      user.courses = courses.map((c) => c.id);
+      console.log(user);
+      db.collection(Collections.users).doc(user.id).set(user);
+    }
+
+    return courses;
   }
 }
 
