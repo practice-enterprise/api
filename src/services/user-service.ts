@@ -59,10 +59,8 @@ export class UserService {
       });
   }
 
-  static async updateRole(user: User) {
-    const configs: Guild[] = (await db.collection(Collections.guilds).get())/*.docs.map((d) => d.data()*/);
-
-
+  static async updateRoles(user: User) {
+    const configs = (await db.collection(Collections.guilds).get()).docs.map((d) => d.data()) as unknown as Guild; 
     const guilds = DiscordService.getGuilds(user.discord.id);
 
     let validGuildConfigs: Guild[] = []
