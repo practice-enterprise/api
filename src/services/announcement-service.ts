@@ -1,5 +1,5 @@
 import Axios from "axios";
-import { CanvasAnnouncement } from "../models/canvas";
+import { CanvasAnnouncement, CanvasInstance } from "../models/canvas";
 import TurndownService from 'turndown';
 import { CanvasController } from "../controllers/canvas";
 import { MessageEmbed } from "discord.js";
@@ -7,6 +7,7 @@ import { stringify } from "querystring";
 import { WebSocket } from "../app";
 import { Collections, db } from "./database";
 import { UserService } from "./user-service";
+import { Guild } from "../models/guild";
 
 export class AnnouncementService {
   static async getAnnouncements(canvasInstanceID: string, courseID: number): Promise<CanvasAnnouncement[] | undefined> {
@@ -61,14 +62,14 @@ export class AnnouncementService {
     //TODO: handle refresh/ 401/403
   }
 
-  static async buildAnnouncementEmbed(announcement: CanvasAnnouncement, courseID: string, canvasInstanceID: string, discordUserID: string): Promise<MessageEmbed> {
+  static async buildAnnouncementEmbed(announcement: CanvasAnnouncement, courseID: number, canvasInstanceID: string, discordUserID: string): Promise<MessageEmbed> {
     const ts = new TurndownService();
 
     const courses = await CanvasController.getCourses(discordUserID, canvasInstanceID);
     if (courses === undefined) {
       throw new Error('Courses not defined. Likely invalid or undefined token from users.');
     }
-    const course = courses.find(c => c.id === parseInt(courseID));
+    const course = courses.find(c => c.id === courseID);
 
     const postedTime = new Date(announcement.posted_at);
     const postTimeString = postedTime.getHours() + ':' + (postedTime.getMinutes() < 10 ? '0' + postedTime.getMinutes() : postedTime.getMinutes()) + ' • ' + postedTime.getDate() + '/' + (postedTime.getMonth() + 1) + '/' + postedTime.getFullYear();
@@ -91,64 +92,60 @@ export class AnnouncementService {
   // ## Checking announcements for changes
   // FIX: API checks before bot can receive events -> lastAnnounce is set to something that isn't posted
   // TODO: check rate limits. Currently 1 minute interval. We want this as low as is allowed.
-  // guildID: string, CanvasInstanceID: string
-  static initAnnouncementJob(): NodeJS.Timeout {
+  static initAnnouncementJob(interval: number): NodeJS.Timeout {
     return setInterval(async () => {
-      const guilds = (await db.collection(Collections.guilds).get()).docs.map((d) => d.data());
-      // FIX: This for loop can prob be done better or differently.
-      for (let i = 0; i < guilds.length; i++) {
-        const guildID = guilds[i]?.id;
-        const canvasInstanceID = guilds[i]?.canvasInstanceID;
+      const guilds = (await db.collection(Collections.guilds).get()).docs.map((d) => d.data()) as Guild[];
+      let AllCourseIDs: number[] = [];
+      // Get all course IDs from all the different guilds
+      for (const guild of guilds) {
+        for (const c in guild.courseChannels.channels) {
+          AllCourseIDs.push(Number(c));
+        }
+      }
+      // Remove dupes
+      const courseIDs = Array.from(new Set(AllCourseIDs));
 
-        if (guildID === undefined || canvasInstanceID === undefined) {
+      const canvasInstanceID = guilds[0].canvasInstanceID;
+      const canvas = (await db.collection(Collections.canvas).doc(canvasInstanceID).get()).data() as CanvasInstance;
+      if (canvas === undefined) {
+        console.error(`CanvasInstance with id ${canvasInstanceID} is undefined.`);
+        return;
+      }
+
+      console.log('Canvas domain: ', canvas.endpoint);
+
+      if (canvas.lastAnnounce === undefined || (stringify(canvas.lastAnnounce) === stringify({}))) {
+        canvas.lastAnnounce = {};
+      }
+
+      for (const courseID of courseIDs) {
+        const user = await UserService.getForCourse(courseID);
+        // FIX: The random user we took may not have a token. This shouldn't be the case since otherwise the user wouldn't have courses assinged in the first place.
+        if (user === undefined) {
+          console.error('No user was found for subject ', courseID);
           continue;
         }
-        const canvas = (await db.collection(Collections.canvas).doc(canvasInstanceID).get()).data();
-        /*change => is just guild in loop */
-        const guildConfig = (await db.collection(Collections.guilds).doc(guildID).get()).data();
-        if (guildConfig === undefined) {
-          console.error(`Guildconfig with id ${guildID} is undefined.`);
-          return;
-        }
-        if (canvas === undefined) {
-          console.error(`CanvasInstance with id ${canvasInstanceID} is undefined.`);
-          return;
-        }
-        console.log('Canvas domain: ', canvas.endpoint);
 
-        // Canvas Instance for announcements is undefined or empty
-        // TODO: there is probably a better way of checking if it's empty
-        if (canvas.lastAnnounce === undefined || (stringify(canvas.lastAnnounce) === stringify({}))) {
-          canvas.lastAnnounce = {};
+        const announcements = await this.getAnnouncements(canvasInstanceID, courseID);
+        console.log('Checking announcements for courseID', courseID);
+        if (announcements === undefined) {
+          throw new Error('Announcements undefined. Likely invalid or undefined token from users.');
+        }
+        if (announcements.length === 0) {
+          console.log('No announcements for this subject');
+          continue;
         }
 
-        // TODO: Delay for ratelimit
-        for (const courseID in guildConfig.courseChannels.channels) {
-          const user = await UserService.getForCourse(parseInt(courseID));
+        console.log('courseID:', courseID);
 
-          if (user === undefined) {
-            console.error('No user was found for subject ', courseID);
-            continue;
-          }
-
-          // FIX: The random user we took may not have a token. This shouldn't be the case since otherwise the user wouldn't have courses assinged in the first place.
-
-          const announcements = await this.getAnnouncements(canvasInstanceID, parseInt(courseID));
-          if (announcements === undefined) {
-            throw new Error('Announcements undefined. Likely invalid or undefined token from users.');
-          }
-
-          console.log('courseID:', courseID);
-
-          // There are no announcements
-          if (announcements.length === 0) {
-            console.log('No announcements for this subject');
-            continue;
-          }
+        // Posting announcements for courses in 
+        const lastAnnounceID = canvas.lastAnnounce[courseID]
+        for (const guild of guilds) {
+          const channelID = guild.courseChannels.channels[courseID];
 
           // No channel is set for a course.
-          if (guildConfig.courseChannels.channels[courseID].length === 0 || guildConfig.courseChannels.channels[courseID].length === undefined) {
-            console.error('No channelID was set for this course in the config!');
+          if (channelID.length === 0 || channelID.length === undefined) {
+            console.error(`No channelID was set for courseID ${courseID} in guild ${guild.id}`);
             continue;
           }
 
@@ -158,24 +155,25 @@ export class AnnouncementService {
 
             const embed = await this.buildAnnouncementEmbed(announcements[0], courseID, canvasInstanceID, user.discord.id);
 
-            // Send announcement
+            // Send last announcement
             const data = {
-              channelID: guildConfig.courseChannels.channels[courseID],
+              channelID: channelID,
               embed: embed
             }
-            WebSocket?.sendForGuild(guildID, 'announcement', data);
+            WebSocket?.sendForGuild(guild.id, 'announcement', data);
 
-            canvas.lastAnnounce[courseID] = announcements[0].id;
             continue;
           }
 
-          console.log('Checking announcements for courseID', courseID);
-
-          const lastAnnounceID = canvas.lastAnnounce[courseID];
+          
           const index = announcements.findIndex(a => a.id === lastAnnounceID);
 
           if (index === 0) {
             console.log('Already last announcement.');
+          }
+          else if (index == -1) {
+            /* FIX: index may be -1, this might for example happen when an announcement has been deleted.
+            Another more unlikely example is that more than 10 announcements were posted in between the last interval */
           }
           else {
             console.log('New announcement(s)!');
@@ -185,22 +183,21 @@ export class AnnouncementService {
 
               const embed = await this.buildAnnouncementEmbed(announcements[i], courseID, canvasInstanceID, user.discord.id);
 
-              // Send 1 new announcement
+              // Send 1 of new announcement(s)
               const data = {
-                channelID: guildConfig.courseChannels.channels[courseID],
+                channelID: channelID,
                 embed: embed
               }
-              WebSocket?.sendForGuild(guildID, 'announcement', data);
+              WebSocket?.sendForGuild(guild.id, 'announcement', data);
             }
-
-            // Update the lastAnnounceID
-            canvas.lastAnnounce[courseID] = announcements[0].id;
           }
         }
-        db.collection(Collections.canvas).doc(canvas.id).set(canvas)
-          .catch((err) => console.error('Couldn\'t update lastAnnounce ID(s). Err: ' + err));
+        // Update last announce ids
+        canvas.lastAnnounce[courseID] = announcements[0].id;
       }
-    }, 10000);
+      db.collection(Collections.canvas).doc(canvas.id).set(canvas)
+        .catch((err) => console.error('Couldn\'t update lastAnnounce ID(s). Err: ' + err));
+    }, interval);
   }
 
 }

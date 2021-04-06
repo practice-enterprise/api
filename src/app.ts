@@ -69,7 +69,7 @@ export let WebSocket: SocketManager | undefined = undefined;
     Logger.info(`listening on localhost:${process.env.PORT || 3000}`);
   });
   
-  AnnouncementService.initAnnouncementJob();
+  AnnouncementService.initAnnouncementJob(60000);
   /*
   //temp for testing
   const user = (await db.collection(Collections.users).get()).docs.map(d => d.data()) as unknown as User[];
