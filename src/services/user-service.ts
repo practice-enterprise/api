@@ -2,6 +2,9 @@ import Axios from 'axios';
 import { User } from "../models/users";
 import { allCourses } from "../models/canvas";
 import { Collections, db } from "./database";
+import { DiscordService } from './discord-service';
+import { Guild } from '../models/guild';
+import { CanvasController } from '../controllers/canvas';
 
 export class UserService {
   static async getForCourse(courseID: number): Promise<User | undefined> {
@@ -18,11 +21,11 @@ export class UserService {
 
   /**Updates all course IDs for a user. Returns true if succesful */
   static async updateUserCourses(user: User, canvasInstanceID: string): Promise<boolean> {
-    if ( user.canvas.token === undefined ) {
+    if (user.canvas.token === undefined) {
       return false
     }
-    const canvas =  (await db.collection(Collections.canvas).doc(canvasInstanceID).get()).data();
-    if ( canvas === undefined) {
+    const canvas = (await db.collection(Collections.canvas).doc(canvasInstanceID).get()).data();
+    if (canvas === undefined) {
       return false
     }
     console.log('CANVAS: ', await canvas);
@@ -46,13 +49,33 @@ export class UserService {
       return d.data.data.allCourses;
     });
     // TODO: check refresh tokens etc
-    user.courses =  courses.map((c) => c._id);
+    user.courses = courses.map((c) => c._id);
 
     return db.collection(Collections.users).doc(user.id).set(user)
       .then(() => true)
       .catch((err) => {
-        console.error('Failed to insert user with updated courses in db. Err: ',err);
+        console.error('Failed to insert user with updated courses in db. Err: ', err);
         return false;
       });
+  }
+
+  static async updateRole(user: User) {
+    const configs: Guild[] = (await db.collection(Collections.guilds).get())/*.docs.map((d) => d.data()*/);
+
+
+    const guilds = DiscordService.getGuilds(user.discord.id);
+
+    let validGuildConfigs: Guild[] = []
+    if (Array.isArray(guilds) && Array.isArray(configs)) {
+      validGuildConfigs = guilds.filter(g => configs.map(c => c.id).includes(g.id));
+    }
+    console.log(validGuildConfigs)
+
+    //TODO, get rid of hardcoded canvasInstanceID
+    const courses = await CanvasController.getCourses(user.discord.id, validGuildConfigs[0].canvasInstanceID);
+    if (courses === undefined) {
+      console.log('Could not retrieve courses for user', user.discord.id);
+      return undefined;
+    }
   }
 }
