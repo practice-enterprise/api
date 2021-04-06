@@ -9,7 +9,6 @@ import { ReminderController } from './controllers/reminder';
 import { NotesController } from './controllers/notes';
 import { ConfigController } from './controllers/config';
 import { CanvasController } from './controllers/canvas';
-import { UserController } from './controllers/users';
 import { OauthController } from './controllers/oauth';
 
 export function applyRoutes(express: Express): Express {
@@ -26,7 +25,6 @@ export function applyRoutes(express: Express): Express {
   express.use('/guilds', GuildController.router());
   express.use('/notes', NotesController.router());
   express.use('/reminders', ReminderController.router());
-  express.use('/users', UserController.router());
   express.use('/oauth2', OauthController.router());
 
   express.use((req: Request, res: Response, next: NextFunction) => {
