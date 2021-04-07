@@ -6,6 +6,8 @@ import { DiscordService } from './discord-service';
 import { Guild } from '../models/guild';
 import { CanvasController } from '../controllers/canvas';
 import { UserGuild } from '../models/discord';
+import { WebSocket } from "../app";
+
 
 export class UserService {
   static async getForCourse(courseID: number): Promise<User | undefined> {
@@ -61,18 +63,37 @@ export class UserService {
   }
 
   static async updateRoles(user: User) {
+    if(user.discord.token  == undefined){console.error(`${user.discord.id} no discord token`); return undefined;}
+
     const configs = (await db.collection(Collections.guilds).get()).docs.map((d) => d.data()) as Guild[]; 
-    const guilds = await DiscordService.getGuilds(user.discord.id);
-
-    let validGuildConfigs: Guild[] = []
-    if (guilds) {
-      validGuildConfigs = configs.filter(c => guilds.map((g) => g.id).includes(c.id));
-    }
-
+    const guilds = await DiscordService.getGuilds(user.discord.token);
+    if (!guilds) {console.log(`could not get guilds for user: ${user.discord.id}`); return undefined;}
+    
+    const validGuildConfigs = configs.filter(c => guilds.map((g) => g.id).includes(c.id));
+   
     const courses = await CanvasController.getCourses(user.discord.id, validGuildConfigs[0].canvasInstanceID);
     if (courses === undefined) {
       console.log('Could not retrieve courses for user', user.discord.id);
       return undefined;
     }
+
+    const validRoleTypes: string[] = [];
+    for(const course of courses){
+      if(course.enrollments){
+        for(const enrollment of course.enrollments)
+        {
+          if(!validRoleTypes.includes(enrollment.type))
+          {
+            validRoleTypes.push(enrollment.type)
+          }
+        }
+      }
+    }
+
+    for(const guild of validGuildConfigs)
+    WebSocket?.sendForGuild(guild.id, 'UpdateRoles', {'uID': user.id, 'roleTypes': validRoleTypes, 'guildRoles': guild.courseChannels})
+
+
   }
 }
+

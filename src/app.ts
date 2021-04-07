@@ -8,7 +8,7 @@ import socketIO from 'socket.io';
 import { SocketManager } from './services/socket';
 import { AnnouncementService } from './services/announcement-service';
 /*
-temp for testing
+//temp for testing
 import { UserService } from './services/user-service';
 import { Collections, db } from './services/database';
 import { Guild } from './models/guild';
@@ -72,8 +72,9 @@ export let WebSocket: SocketManager | undefined = undefined;
   AnnouncementService.initAnnouncementJob();
   /*
   //temp for testing
-  const user = (await db.collection(Collections.users).get()).docs.map(d => d.data()) as unknown as User[];
-  UserService.updateRoles(user[2]);
+  const user = (await db.collection(Collections.users).get()).docs.map(d => d.data()) as User[];
+  UserService.updateRoles(user[0]).catch(err => console.log(err));
+  console.log(user[0].discord.id);
   */
 })()
 
