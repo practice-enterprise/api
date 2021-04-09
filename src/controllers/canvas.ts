@@ -122,13 +122,13 @@ export class CanvasController {
       baseURL: canvas.endpoint,
       url: '/api/v1/courses'
     }).then((res) => res.data)
-      .catch(() => undefined);
+      .catch(() =>  undefined);
     //TODO: handle refresh tokens etc
 
     if (courses !== undefined) {
       // Update user courses in DB
       user.courses = courses.map((c) => c.id);
-      console.log(user);
+      //console.log(user);
       db.collection(Collections.users).doc(user.id).set(user);
     }
 
