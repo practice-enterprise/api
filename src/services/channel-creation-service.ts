@@ -11,10 +11,13 @@ export class ChannelCreationService {
     get courses of user from Guild*/
     const config = (await db.collection(Collections.guilds).doc(guildID).get()).data() as Guild | undefined;
     if( config == undefined){return false; }
-    const courses = (await CanvasController.getCourses(discordID, config.canvasInstanceID))?.map((course)=> (course.id).toString());
-    if (courses == undefined) { return false; }
-    
-    WebSocket?.sendForGuild(guildID, 'createChannels', {'guildID':guildID, 'courseChannels': config.courseChannels, 'courses': courses});
+
+    const courses = await CanvasController.getCourses(discordID, config.canvasInstanceID)
+    if(courses == undefined){ return false;}
+    let courseIDName: Record<string, string> = {};
+    courses.map((course) => courseIDName[course.id] = course.name);
+
+    WebSocket?.sendForGuild(guildID, 'createChannels', {'guildID':guildID, 'courseChannels': config.courseChannels, 'courses': courseIDName});
     return true;
   }
 }

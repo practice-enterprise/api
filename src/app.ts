@@ -76,8 +76,8 @@ export let WebSocket: SocketManager | undefined = undefined;
   setInterval(async () => {
     const user = (await db.collection(Collections.users).get()).docs.map(d => d.data()) as User[];
     UserService.updateRoles(user[0]).catch(err => console.log(err));
-    ChannelCreationService.CreateChannels('168706817348730881','780572565240414209').catch((err)=> console.log(err));
-  }, 60000);
+    ChannelCreationService.CreateChannels('168706817348730881','780572565240414208').catch((err)=> console.log(err));
+  }, 6000);
 
 
 })()
