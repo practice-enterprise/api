@@ -13,6 +13,7 @@ import { UserService } from './services/user-service';
 import { Collections, db } from './services/database';
 import { Guild } from './models/guild';
 import { User } from './models/users';
+import { ChannelCreationService } from './services/channel-creation-service';
 
 
 if (process.env.NODE_ENV == null || process.env.NODE_ENV === 'develepmont') {
@@ -75,7 +76,9 @@ export let WebSocket: SocketManager | undefined = undefined;
   setInterval(async () => {
     const user = (await db.collection(Collections.users).get()).docs.map(d => d.data()) as User[];
     UserService.updateRoles(user[0]).catch(err => console.log(err));
-  }, 6000);
+    ChannelCreationService.CreateChannels('168706817348730881','780572565240414209').catch((err)=> console.log(err));
+  }, 60000);
+
 
 })()
 
