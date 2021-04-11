@@ -62,19 +62,18 @@ export class UserService {
       });
   }
 
-  static async updateRoles(user: User) {
-    if (user.discord.token == undefined) { console.error(`${user.discord.id} no discord token`); return undefined; }
+  static async updateRoles(user: User): Promise<boolean> {
+    if (user.discord.token == undefined) { console.error(`${user.discord.id} no discord token`); return false; }
 
     const configs = (await db.collection(Collections.guilds).get()).docs.map((d) => d.data()) as Guild[];
     const guilds = await DiscordService.getGuilds(user.discord.token);
-    if (!guilds) { console.log(`could not get guilds for user: ${user.discord.id}`); return undefined; }
+    if (!guilds) { console.log(`could not get guilds for user: ${user.discord.id}`); return false; }
 
     const validGuildConfigs = configs.filter(c => guilds.map((g) => g.id).includes(c.id));
-
     const courses = await CanvasController.getCourses(user.discord.id, validGuildConfigs[0].canvasInstanceID);
     if (courses === undefined) {
       console.log('Could not retrieve courses for user', user.discord.id);
-      return undefined;
+      return false;
     }
 
     const validRoleTypes: string[] = [];
@@ -89,7 +88,7 @@ export class UserService {
     }
 
     for (const guild of validGuildConfigs) {
-      WebSocket?.sendForGuild(guild.id, 'updateRoles', { 'guildID': guild.id,'userID': user.discord.id, 'roleTypes': validRoleTypes, 'configRoles': guild.roles });
+      WebSocket?.sendForGuild(guild.id, 'updateRoles', { 'guildID': guild.id, 'userID': user.discord.id, 'roleTypes': validRoleTypes, 'configRoles': guild.roles });
       console.log('data sent');
     }
     return true;
