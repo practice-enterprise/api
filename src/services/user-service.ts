@@ -5,7 +5,6 @@ import { Collections, db } from "./database";
 import { DiscordService } from './discord-service';
 import { Guild } from '../models/guild';
 import { CanvasController } from '../controllers/canvas';
-import { UserGuild } from '../models/discord';
 import { WebSocket } from "../app";
 
 
@@ -27,9 +26,8 @@ export class UserService {
     if (user.canvas.token === undefined) { throw new Error(`${user.id} no canvas token`) }
     const canvas = (await db.collection(Collections.canvas).doc(canvasInstanceID).get()).data();
     if (canvas === undefined) {
-      throw new Error(`could not retrieve courses of ${user.id}`)
+      throw new Error(`could not retrieve courses of ${user.id}`);
     }
-    console.log('CANVAS: ', await canvas);
     const courses = await Axios.request<allCourses>({
       headers: {
         Authorization: `Bearer ${user.canvas.token}`
@@ -53,8 +51,7 @@ export class UserService {
     user.courses = courses.map((c) => c._id);
 
     await db.collection(Collections.users).doc(user.id).set(user)
-      .catch((err) => { throw new Error(`failed to set ${user.id} courses. error: ${err}`) })
-
+      .catch((err) => { throw new Error(`failed to set ${user.id} courses. error: ${err}`); });
   }
 
   static async updateRoles(user: User): Promise<void> {
@@ -62,18 +59,18 @@ export class UserService {
 
     const configs = (await db.collection(Collections.guilds).get()).docs.map((d) => d.data()) as Guild[];
     const guilds = await DiscordService.getGuilds(user.discord.token);
-    if (!guilds) { throw new Error(`could not get guilds for user: ${user.discord.id}`) }
+    if (!guilds) { throw new Error(`could not get guilds for user: ${user.discord.id}`); }
 
     const validGuildConfigs = configs.filter(c => guilds.map((g) => g.id).includes(c.id));
     const courses = await CanvasController.getCourses(user.discord.id, validGuildConfigs[0].canvasInstanceID);
-    if (courses === undefined) { throw new Error(`Could not retrieve courses for ${user.discord.id}`) }
+    if (courses === undefined) { throw new Error(`Could not retrieve courses for ${user.discord.id}`); }
 
     const validRoleTypes: string[] = [];
     for (const course of courses) {
       if (course.enrollments) {
         for (const enrollment of course.enrollments) {
           if (!validRoleTypes.includes(enrollment.type)) {
-            validRoleTypes.push(enrollment.type)
+            validRoleTypes.push(enrollment.type);
           }
         }
       }

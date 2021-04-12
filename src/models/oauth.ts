@@ -11,7 +11,7 @@ export interface DiscordToken {
 export interface CanvasToken {
   access_token: string,
   token_type: string,
-  user: {id: number | string, name: string, global_id: string, effective_locale: string},
+  user: { id: number | string, name: string, global_id: string, effective_locale: string },
   refresh_token?: string, // Not returned if asking for a refresh token
   expires_in: number
 }

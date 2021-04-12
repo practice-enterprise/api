@@ -25,26 +25,7 @@ export class AnnouncementService {
     if (!canvas) {
       return undefined;
     }
-    /*
-      // # This call has a problem where it will only show the last 14 days or since a start date 
-      // # (which presumely) can't be before the course creation date.
-      // # Discussion topics never show announcements unless you for some reason ask to only show announcements.
 
-    return Axios.request<CanvasAnnouncement[]>({
-      headers: {
-        Authorization: `Bearer ${user.canvas.token}`
-      },
-      params: {
-        context_codes: ['course_' + req.params.courseID],
-        start_date: '2021-01-01'
-      },
-
-      method: 'GET',
-      baseURL: canvas.endpoint,
-      url: '/api/v1/announcements'
-    }).then((d) => res.send(d.data))
-      .catch((err) => res.sendStatus(err.status));
-    */
     return Axios.request<CanvasAnnouncement[]>({
       headers: {
         Authorization: `Bearer ${user.canvas.token}`

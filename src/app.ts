@@ -62,9 +62,5 @@ export let WebSocket: SocketManager | undefined = undefined;
     Logger.info(`listening on localhost:${process.env.PORT || 3000}`);
   });
 
-  AnnouncementService.initAnnouncementJob(10000);
-
+  AnnouncementService.initAnnouncementJob(60000);
 })()
-
-
-

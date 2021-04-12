@@ -168,7 +168,7 @@ export interface allCourses {
   }
 }
 
-export interface Enrollment{
+export interface Enrollment {
   type: string,
   role: string,
   role_id: number,
