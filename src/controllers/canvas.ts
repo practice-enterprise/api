@@ -130,7 +130,6 @@ export class CanvasController {
     if (courses !== undefined) {
       // Update user courses in DB
       user.courses = courses.map((c) => c.id);
-      //console.log(user);
       db.collection(Collections.users).doc(user.id).set(user);
     }
 
