@@ -6,8 +6,8 @@ export class ConfigController {
     return Router({ caseSensitive: false })
       .get('/', (req, res, next) => {
         db.collection(Collections.config).get()
-        .then((snapshot) => res.send(snapshot.docs[0].data() || {}))
-        .finally(() => next());
+          .then((snapshot) => res.send(snapshot.docs[0].data() || {}))
+          .finally(() => next());
       });
   }
 }

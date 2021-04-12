@@ -3,7 +3,7 @@ export interface DiscordToken {
   access_token: string,
   token_type: string,
   expires_in: number,
-  refresh_token: string, //Always returned also when refreshing (new refresh token)
+  refresh_token: string, // always returned also when refreshing (new refresh token)
   scope: string
 }
 
