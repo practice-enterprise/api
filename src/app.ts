@@ -13,6 +13,7 @@ import { UserService } from './services/user-service';
 import { Collections, db } from './services/database';
 import { Guild } from './models/guild';
 import { User } from './models/users';
+import { ReminderService } from './services/reminder-service';
 
 
 if (process.env.NODE_ENV == null || process.env.NODE_ENV === 'develepmont') {
@@ -69,12 +70,14 @@ export let WebSocket: SocketManager | undefined = undefined;
     Logger.info(`listening on localhost:${process.env.PORT || 3000}`);
   });
 
+  ReminderService.initSendReminder(60000);
   AnnouncementService.initAnnouncementJob();
 
   //temp for testing
   setInterval(async () => {
     const user = (await db.collection(Collections.users).get()).docs.map(d => d.data()) as User[];
     UserService.updateRoles(user[0]).catch(err => console.log(err));
+    
   }, 6000);
 
 })()

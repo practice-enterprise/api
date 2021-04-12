@@ -5,8 +5,8 @@ import { Collections, db } from "./database";
 import { DiscordService } from './discord-service';
 import { Guild } from '../models/guild';
 import { CanvasController } from '../controllers/canvas';
-import { UserGuild } from '../models/discord';
 import { WebSocket } from "../app";
+
 
 
 export class UserService {
