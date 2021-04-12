@@ -25,26 +25,7 @@ export class AnnouncementService {
     if (!canvas) {
       return undefined;
     }
-    /*
-      // # This call has a problem where it will only show the last 14 days or since a start date 
-      // # (which presumely) can't be before the course creation date.
-      // # Discussion topics never show announcements unless you for some reason ask to only show announcements.
 
-    return Axios.request<CanvasAnnouncement[]>({
-      headers: {
-        Authorization: `Bearer ${user.canvas.token}`
-      },
-      params: {
-        context_codes: ['course_' + req.params.courseID],
-        start_date: '2021-01-01'
-      },
-
-      method: 'GET',
-      baseURL: canvas.endpoint,
-      url: '/api/v1/announcements'
-    }).then((d) => res.send(d.data))
-      .catch((err) => res.sendStatus(err.status));
-    */
     return Axios.request<CanvasAnnouncement[]>({
       headers: {
         Authorization: `Bearer ${user.canvas.token}`
@@ -92,7 +73,7 @@ export class AnnouncementService {
   // FIX: API checks before bot can receive events -> lastAnnounce is set to something that isn't posted
   // TODO: check rate limits. Currently 1 minute interval. We want this as low as is allowed.
   // guildID: string, CanvasInstanceID: string
-  static initAnnouncementJob(): NodeJS.Timeout {
+  static initAnnouncementJob(interval: number): NodeJS.Timeout {
     return setInterval(async () => {
       const guilds = (await db.collection(Collections.guilds).get()).docs.map((d) => d.data());
       // FIX: This for loop can prob be done better or differently.
@@ -200,7 +181,7 @@ export class AnnouncementService {
         db.collection(Collections.canvas).doc(canvas.id).set(canvas)
           .catch((err) => console.error('Couldn\'t update lastAnnounce ID(s). Err: ' + err));
       }
-    }, 10000);
+    }, interval);
   }
 
 }

@@ -21,8 +21,10 @@ export class CanvasController {
       /* # Canvas LMS API requests # */
       /* Find courses for a discord user*/
       .get('/:canvasInstanceID/:discordID/courses', async (req, res, next) => {
-        res.send(await this.getCourses(req.params.discordID, req.params.canvasInstanceID));
-        // FIX: there needs to be next().
+        this.getCourses(req.params.discordID, req.params.canvasInstanceID)
+          .then((courses) => res.send(courses))
+          .catch(() => res.sendStatus(404))
+          .finally(() => next());
       })
 
       /* Find modules of a course for a discord user*/
@@ -96,7 +98,7 @@ export class CanvasController {
         }).then((d) => res.send(d.data))
           .catch(() => res.sendStatus(401));
       })
-  }
+  };
 
   static async getCourses(discordID: string, canvasInstanceID: string): Promise<CanvasCourse[] | undefined> {
     const snap = (await db.collection(Collections.users).where('discord.id', '==', discordID).get());
@@ -122,7 +124,7 @@ export class CanvasController {
       baseURL: canvas.endpoint,
       url: '/api/v1/courses'
     }).then((res) => res.data)
-      .catch(() =>  undefined);
+      .catch(() => undefined);
     //TODO: handle refresh tokens etc
 
     if (courses !== undefined) {
