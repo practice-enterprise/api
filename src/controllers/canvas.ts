@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import Axios from 'axios';
-import { CanvasCourse, CanvasModule, CanvasModuleItem } from '../models/canvas'
+import { CanvasCourse, CanvasModule, CanvasModuleItem } from '../models/canvas';
 import { Collections, db } from '../services/database';
 
 export class CanvasController {
@@ -61,7 +61,7 @@ export class CanvasController {
         }).then((d) => res.send(d.data))
           .catch((err) => {
             console.log(err);
-            res.sendStatus(401)
+            res.sendStatus(401);
           });
       })
       /* Find items from an itemURL (itemURL from module) for a discord user*/
@@ -97,8 +97,8 @@ export class CanvasController {
           url: req.params.item_URL
         }).then((d) => res.send(d.data))
           .catch(() => res.sendStatus(401));
-      })
-  };
+      });
+  }
 
   static async getCourses(discordID: string, canvasInstanceID: string): Promise<CanvasCourse[] | undefined> {
     const snap = (await db.collection(Collections.users).where('discord.id', '==', discordID).get());
@@ -130,7 +130,6 @@ export class CanvasController {
     if (courses !== undefined) {
       // Update user courses in DB
       user.courses = courses.map((c) => c.id);
-      //console.log(user);
       db.collection(Collections.users).doc(user.id).set(user);
     }
 

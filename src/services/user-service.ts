@@ -9,8 +9,15 @@ import { WebSocket } from "../app";
 
 
 export class UserService {
-  static async getForCourse(courseID: number): Promise<User | undefined> {
-    const users = (await db.collection(Collections.users).where('courses', 'array-contains', courseID).get()).docs.map((d) => d.data());
+  static async getForCourse(courseID: number, canvasInstanceID?: string): Promise<User | undefined> {
+    let users: User[];
+    if (canvasInstanceID !== undefined) {
+      users = (await db.collection(Collections.users).where('courses', 'array-contains', courseID).where('canvas.instanceID', '==', canvasInstanceID).get()).docs.map((d) => d.data()) as User[];
+    }
+    else {
+      users = (await db.collection(Collections.users).where('courses', 'array-contains', courseID).get()).docs.map((d) => d.data()) as User[];
+    }
+
     /*There are no corresponding users for this courseID */
     if (users.length < 1) {
       return undefined;

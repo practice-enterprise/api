@@ -8,8 +8,8 @@ export class GuildController {
         db.collection(Collections.guilds)
           .doc(req.params.id).get()
           .then(d => {
-            if (d.exists) res.send(d.data())
-            else res.sendStatus(404)
+            if (d.exists) res.send(d.data());
+            else res.sendStatus(404);
           })
           .finally(() => next());
       })
