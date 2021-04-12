@@ -8,13 +8,6 @@ import socketIO from 'socket.io';
 import { SocketManager } from './services/socket';
 import { AnnouncementService } from './services/announcement-service';
 
-//temp for testing
-import { UserService } from './services/user-service';
-import { Collections, db } from './services/database';
-import { Guild } from './models/guild';
-import { User } from './models/users';
-
-
 if (process.env.NODE_ENV == null || process.env.NODE_ENV === 'develepmont') {
   dotenv.config();
   Logger.add(new winston.transports.Console({ format: winston.format.combine(winston.format.colorize(), winston.format.simple()), level: 'debug' }));
@@ -69,13 +62,7 @@ export let WebSocket: SocketManager | undefined = undefined;
     Logger.info(`listening on localhost:${process.env.PORT || 3000}`);
   });
 
-  AnnouncementService.initAnnouncementJob();
-
-  //temp for testing
-  setInterval(async () => {
-    const user = (await db.collection(Collections.users).get()).docs.map(d => d.data()) as User[];
-    UserService.updateRoles(user[0]).catch(err => console.log(err));
-  }, 6000);
+  AnnouncementService.initAnnouncementJob(10000);
 
 })()
 

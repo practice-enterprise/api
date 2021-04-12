@@ -92,7 +92,7 @@ export class AnnouncementService {
   // FIX: API checks before bot can receive events -> lastAnnounce is set to something that isn't posted
   // TODO: check rate limits. Currently 1 minute interval. We want this as low as is allowed.
   // guildID: string, CanvasInstanceID: string
-  static initAnnouncementJob(): NodeJS.Timeout {
+  static initAnnouncementJob(interval: number): NodeJS.Timeout {
     return setInterval(async () => {
       const guilds = (await db.collection(Collections.guilds).get()).docs.map((d) => d.data());
       // FIX: This for loop can prob be done better or differently.
@@ -200,7 +200,7 @@ export class AnnouncementService {
         db.collection(Collections.canvas).doc(canvas.id).set(canvas)
           .catch((err) => console.error('Couldn\'t update lastAnnounce ID(s). Err: ' + err));
       }
-    }, 10000);
+    }, interval);
   }
 
 }

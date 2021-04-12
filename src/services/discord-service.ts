@@ -11,6 +11,6 @@ export class DiscordService {
       baseURL: 'https://discord.com/api/v8',
       url: '/users/@me/guilds'
     })
-      .then((res) => res != null ? res.data : undefined);
+      .then((res) => res.data);
   }
 }
