@@ -14,7 +14,7 @@ enum OpCode {
 
 export class SocketManager {
   shards: Shard[] = [];
-  targetShards: number = 1;
+  targetShards = 1;
 
   constructor(public server: Server) {
     Logger.debug('initializing shard manager');
@@ -35,7 +35,7 @@ export class SocketManager {
         this.shards.splice(index, 1);
       }
       this.evaluateState();
-    })
+    });
   }
 
   private evaluateState(): void {

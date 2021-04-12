@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import { sofa } from '../services/sofa';
 
 export class CanvasController {
   static router(): Router {
