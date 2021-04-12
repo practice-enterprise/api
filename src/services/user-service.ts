@@ -52,7 +52,8 @@ export class UserService {
     // TODO: check refresh tokens etc
     user.courses = courses.map((c) => c._id);
 
-    await db.collection(Collections.users).doc(user.id).set(user).catch((err) => { throw new Error(`failed to set ${user.id} courses. error: ${err}`) })
+    await db.collection(Collections.users).doc(user.id).set(user)
+      .catch((err) => { throw new Error(`failed to set ${user.id} courses. error: ${err}`) })
 
   }
 
