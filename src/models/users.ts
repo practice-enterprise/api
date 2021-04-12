@@ -7,6 +7,7 @@ export interface User {
   canvas: {
     id?: string,
     token?: string
+    instanceID: string
   },
   courses?: string[],
 }

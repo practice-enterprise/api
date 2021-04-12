@@ -174,3 +174,9 @@ export interface Enrollment{
   role_id: number,
   user_id: number
 }
+
+export interface CalenderAssignment{
+  id: string,
+  title: string,
+  end_at: string
+}
