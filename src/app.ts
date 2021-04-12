@@ -8,6 +8,7 @@ import socketIO from 'socket.io';
 import { SocketManager } from './services/socket';
 import { createServer } from 'http';
 import { Env } from './util/env';
+import { AnnouncementService } from './services/announcement-service';
 
 if (process.env.NODE_ENV == null || process.env.NODE_ENV === 'develepmont') {
   dotenv.config();
@@ -41,4 +42,6 @@ export let WebSocket: SocketManager | undefined = undefined;
   server.listen(process.env.PORT || 3000, () => {
     Logger.info(`listening on localhost:${process.env.PORT || 3000}`);
   });
+
+  AnnouncementService.initAnnouncementJob(60000);
 })();

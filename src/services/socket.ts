@@ -60,7 +60,7 @@ export class SocketManager {
 
   sendForGuild(guild: string, event: string, message: any): void {
     const shard = getShardId(guild, this.targetShards);
-    this.shards.find(s => s.number == shard)?.socket.send(event, message);
+    this.shards.find(s => s.number == shard)?.socket.emit(event, message);
   }
 
   sendAll(event: string, message: any): void {
