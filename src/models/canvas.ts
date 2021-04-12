@@ -178,5 +178,6 @@ export interface Enrollment{
 export interface CalenderAssignment{
   id: string,
   title: string,
+  description: string,
   end_at: string
 }

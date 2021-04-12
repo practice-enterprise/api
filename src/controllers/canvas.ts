@@ -140,6 +140,7 @@ export class CanvasController {
     if(user.courses == undefined){return undefined;}
     const canvas = (await db.collection(Collections.canvas).doc(user.canvas.instanceID).get()).data();
     if(canvas == undefined){return undefined;}
+    //TODO add dynamic (start and) end dates
 
     return Axios.request<CalenderAssignment[]>({
       headers: {
@@ -148,7 +149,9 @@ export class CanvasController {
       },
       params:{
         type: 'assignment',
-        all_events: true,
+        all_events: false,
+        start_date: '2021-04-01',
+        end_date:'2021-05-20',
         'context_codes': user.courses.map(c => 'course_'+c)
       },
       method: 'GET',

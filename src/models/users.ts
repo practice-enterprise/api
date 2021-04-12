@@ -7,7 +7,8 @@ export interface User {
   canvas: {
     id?: string,
     token?: string
-    instanceID: string
+    instanceID: string,
+    lastAssignment: string
   },
   courses?: string[],
 }
