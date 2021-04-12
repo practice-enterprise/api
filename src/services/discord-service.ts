@@ -2,7 +2,7 @@ import axios from "axios";
 import { UserGuild } from "../models/discord";
 
 export class DiscordService {
-  static async getGuilds(token: string): Promise<UserGuild[] | undefined> {
+  static async getGuilds(token: string): Promise<UserGuild[]> {
     return await axios.request<UserGuild[]>({
       headers: {
         Authorization: token
