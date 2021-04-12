@@ -24,7 +24,7 @@ export interface CanvasCourse {
   start_at: Date | string,
   end_at: Date | string,
   locale: string,
-  enrollments: string | null,
+  enrollments: Enrollment[] | null,
   total_students: number | string,
   calendar: string | null,
   default_view: string,
@@ -166,4 +166,11 @@ export interface allCourses {
       }
     ]
   }
+}
+
+export interface Enrollment{
+  type: string,
+  role: string,
+  role_id: number,
+  user_id: number
 }

@@ -7,13 +7,6 @@ import { Logger } from './util/logger';
 import socketIO from 'socket.io';
 import { SocketManager } from './services/socket';
 import { AnnouncementService } from './services/announcement-service';
-/*
-temp for testing
-import { UserService } from './services/user-service';
-import { Collections, db } from './services/database';
-import { Guild } from './models/guild';
-import { User } from './models/users';
-*/
 
 if (process.env.NODE_ENV == null || process.env.NODE_ENV === 'develepmont') {
   dotenv.config();
@@ -64,17 +57,13 @@ export let WebSocket: SocketManager | undefined = undefined;
   const server = require('http').createServer(app);
   const io = new socketIO.Server(server);
   WebSocket = new SocketManager(io);
-  
+
   server.listen(process.env.PORT || 3000, () => {
     Logger.info(`listening on localhost:${process.env.PORT || 3000}`);
   });
-  
-  AnnouncementService.initAnnouncementJob();
-  /*
-  //temp for testing
-  const user = (await db.collection(Collections.users).get()).docs.map(d => d.data()) as unknown as User[];
-  UserService.updateRoles(user[2]);
-  */
+
+  AnnouncementService.initAnnouncementJob(10000);
+
 })()
 
 
