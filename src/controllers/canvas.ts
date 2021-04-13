@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import Axios from 'axios';
-import { CanvasCourse, CanvasModule, CanvasModuleItem } from '../models/canvas'
+import { CanvasCourse, CanvasModule, CanvasModuleItem } from '../models/canvas';
 import { Collections, db } from '../services/database';
 
 export class CanvasController {
@@ -21,8 +21,10 @@ export class CanvasController {
       /* # Canvas LMS API requests # */
       /* Find courses for a discord user*/
       .get('/:canvasInstanceID/:discordID/courses', async (req, res, next) => {
-        res.send(await this.getCourses(req.params.discordID, req.params.canvasInstanceID));
-        // FIX: there needs to be next().
+        this.getCourses(req.params.discordID, req.params.canvasInstanceID)
+          .then((courses) => res.send(courses))
+          .catch(() => res.sendStatus(404))
+          .finally(() => next());
       })
 
       /* Find modules of a course for a discord user*/
@@ -59,7 +61,7 @@ export class CanvasController {
         }).then((d) => res.send(d.data))
           .catch((err) => {
             console.log(err);
-            res.sendStatus(401)
+            res.sendStatus(401);
           });
       })
       /* Find items from an itemURL (itemURL from module) for a discord user*/
@@ -95,7 +97,7 @@ export class CanvasController {
           url: req.params.item_URL
         }).then((d) => res.send(d.data))
           .catch(() => res.sendStatus(401));
-      })
+      });
   }
 
   static async getCourses(discordID: string, canvasInstanceID: string): Promise<CanvasCourse[] | undefined> {
@@ -128,7 +130,6 @@ export class CanvasController {
     if (courses !== undefined) {
       // Update user courses in DB
       user.courses = courses.map((c) => c.id);
-      //console.log(user);
       db.collection(Collections.users).doc(user.id).set(user);
     }
 

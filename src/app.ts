@@ -6,15 +6,10 @@ import winston from 'winston';
 import { Logger } from './util/logger';
 import socketIO from 'socket.io';
 import { SocketManager } from './services/socket';
+import { createServer } from 'http';
+import { Env } from './util/env';
 import { AnnouncementService } from './services/announcement-service';
-
-//temp for testing
-import { UserService } from './services/user-service';
-import { Collections, db } from './services/database';
-import { Guild } from './models/guild';
-import { User } from './models/users';
 import { ReminderService } from './services/reminder-service';
-
 
 if (process.env.NODE_ENV == null || process.env.NODE_ENV === 'develepmont') {
   dotenv.config();
@@ -30,39 +25,18 @@ if (process.env.NODE_ENV == null || process.env.NODE_ENV === 'develepmont') {
   Logger.exceptions.handle(new LoggingWinston({ projectId: process.env.PROJECT_ID, logName: 'discord-canvas', prefix: 'api' }));
 }
 
-// Discord dotenv
-if (process.env.D_CLIENT_ID == null) {
-  console.error('Discord client ID is not defined (D_CLIENT_ID in dotenv)');
-  process.exit(-1)
-}
-if (process.env.D_CLIENT_SECRET == null) {
-  console.error('Discord client secret is not defined (D_CLIENT_SECRET in dotenv)');
-  process.exit(-1)
-}
-if (process.env.D_REDIRECT_URI == null) {
-  console.error('Discord redirect URI is not defined (D_REDIRECT_URI in dotenv)');
-  process.exit(-1)
-}
-
-//Canvas dotenv
-if (process.env.C_CLIENT_ID == null) {
-  console.error('Canvas client ID is not defined (C_CLIENT_ID in dotenv)');
-  process.exit(-1)
-}
-if (process.env.C_CLIENT_SECRET == null) {
-  console.error('Canvas client secret is not defined (C_CLIENT_SECRET in dotenv)');
-  process.exit(-1)
-}
-if (process.env.C_REDIRECT_URI == null) {
-  console.error('Canvas redirect URI is not defined (C_REDIRECT_URI in dotenv)');
-  process.exit(-1)
+try {
+  Env.validateMandatoryEnv();
+} catch {
+  console.error('env not properly configured');
+  process.exit(-1);
 }
 
 export let WebSocket: SocketManager | undefined = undefined;
 
 (async () => {
   const app = applyRoutes(Express());
-  const server = require('http').createServer(app);
+  const server = createServer(app);
   const io = new socketIO.Server(server);
   WebSocket = new SocketManager(io);
 
@@ -71,16 +45,5 @@ export let WebSocket: SocketManager | undefined = undefined;
   });
 
   ReminderService.initSendReminder(60000);
-  AnnouncementService.initAnnouncementJob();
-
-  //temp for testing
-  setInterval(async () => {
-    const user = (await db.collection(Collections.users).get()).docs.map(d => d.data()) as User[];
-    UserService.updateRoles(user[0]).catch(err => console.log(err));
-    
-  }, 6000);
-
-})()
-
-
-
+  AnnouncementService.initAnnouncementJob(60000);
+})();

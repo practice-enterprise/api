@@ -1,5 +1,5 @@
 export interface CanvasInstance {
-  _id: string,
+  id: string,
   endpoint: string,
   /**CourseID key + last announcement ID*/
   lastAnnounce: Record<string, number>,
@@ -168,7 +168,7 @@ export interface allCourses {
   }
 }
 
-export interface Enrollment{
+export interface Enrollment {
   type: string,
   role: string,
   role_id: number,
