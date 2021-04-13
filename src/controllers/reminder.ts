@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import { Reminder } from '../models/reminder';
 import { Collections, db } from '../services/database';
 
 export class ReminderController {

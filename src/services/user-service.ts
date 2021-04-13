@@ -69,7 +69,9 @@ export class UserService {
 
     const validGuildConfigs = configs.filter(c => guilds.map((g) => g.id).includes(c.id));
     const courses = await CanvasController.getCourses(user.discord.id, validGuildConfigs[0].canvasInstanceID);
-    if (courses === undefined) { throw new Error(`Could not retrieve courses for ${user.discord.id}`); }
+    if (courses === undefined) {
+      throw new Error(`Could not retrieve courses for ${user.discord.id}`);
+    }
 
     const validRoleTypes: string[] = [];
     for (const course of courses) {
@@ -83,7 +85,12 @@ export class UserService {
     }
 
     for (const guild of validGuildConfigs) {
-      WebSocket?.sendForGuild(guild.id, 'updateRoles', { 'guildID': guild.id, 'userID': user.discord.id, 'roleTypes': validRoleTypes, 'configRoles': guild.roles });
+      WebSocket?.sendForGuild(guild.id, 'updateRoles', {
+        'guildID': guild.id,
+        'userID': user.discord.id,
+        'roleTypes': validRoleTypes,
+        'configRoles': guild.roles 
+      });
     }
   }
 }
