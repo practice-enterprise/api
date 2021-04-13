@@ -9,6 +9,7 @@ import { SocketManager } from './services/socket';
 import { createServer } from 'http';
 import { Env } from './util/env';
 import { AnnouncementService } from './services/announcement-service';
+import { ReminderService } from './services/reminder-service';
 
 if (process.env.NODE_ENV == null || process.env.NODE_ENV === 'develepmont') {
   dotenv.config();
@@ -43,5 +44,6 @@ export let WebSocket: SocketManager | undefined = undefined;
     Logger.info(`listening on localhost:${process.env.PORT || 3000}`);
   });
 
+  ReminderService.initSendReminder(60000);
   AnnouncementService.initAnnouncementJob(60000);
 })();

@@ -66,4 +66,8 @@ export class SocketManager {
   sendAll(event: string, message: any): void {
     this.server.emit(event, message);
   }
+
+  sendRoot(event: string, message: any): void {
+    this.shards.find(s => s.number == 0)?.socket.emit(event, message);
+  }
 }
