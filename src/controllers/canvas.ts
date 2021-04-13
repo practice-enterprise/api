@@ -123,43 +123,47 @@ export class CanvasController {
       baseURL: canvas.endpoint,
       url: '/api/v1/courses'
     }).then((res) => res.data)
-    .catch(() => undefined);
+      .catch(() => undefined);
     //TODO: handle refresh tokens etc
-    
+
     if (courses !== undefined) {
       // Update user courses in DB
       user.courses = courses.map((c) => c.id);
       //console.log(user);
       db.collection(Collections.users).doc(user.id).set(user);
     }
-    
+
     return courses;
   }
-  
-  static async getCalenderAssignments(user: User): Promise<CalenderAssignment[] |undefined> {
-    if(user.courses == undefined){return undefined;}
+
+  static async getCalenderAssignments(user: User): Promise<CalenderAssignment[] | void> {
+    if (user.courses == undefined) {
+      throw new Error('no canvas courses')
+    }
+
     const canvas = (await db.collection(Collections.canvas).doc(user.canvas.instanceID).get()).data();
-    if(canvas == undefined){return undefined;}
-    //TODO add dynamic (start and) end dates
+    if (canvas == undefined) { throw new Error(`no instance with id ${user.canvas.instanceID}`) }
 
     return Axios.request<CalenderAssignment[]>({
       headers: {
         Authorization: `Bearer ${user.canvas.token}`,
         Accept: 'application/json'
       },
-      params:{
+      params: {
         type: 'assignment',
-        all_events: false,
-        start_date: '2021-04-01',
-        end_date:'2021-05-20',
-        'context_codes': user.courses.map(c => 'course_'+c)
+        all_events: true,
+        per_page:100,
+        //TODO add dynamic (start and) end dates  
+        //start_date: '2021-04-01',
+        //end_date:'2021-05-20',
+        'context_codes': user.courses.map(c => 'course_' + c)
       },
       method: 'GET',
-          baseURL: canvas.endpoint,
-          url: '/api/v1/calendar_events'
-    }).then(res => res.data)
+      baseURL: canvas.endpoint,
+      url: '/api/v1/calendar_events'
+    }).then(res => res.data);
   }
-  
+
 }
 
 
