@@ -7,8 +7,6 @@ import { Guild } from '../models/guild';
 import { CanvasController } from '../controllers/canvas';
 import { WebSocket } from "../app";
 
-
-
 export class UserService {
   static async getForCourse(courseID: number, canvasInstanceID?: string): Promise<User | undefined> {
     let users: User[];
