@@ -13,7 +13,6 @@ export class ReminderController {
           .finally(() => next());
       })
       .delete('/', (req, res, next) => {
-        console.log(req.body);
         db.collection(Collections.reminders)
           .doc((req.body.id)).delete()
           .then(() => res.sendStatus(204))

@@ -11,9 +11,9 @@ export class ReminderService {
       const time = new Date(reminder.date);
       if (time.getTime() < Date.now()){
         if(isUserTarget(reminder.target)){
-          //TODO send to random bot to send dm
-          }else{
-          WebSocket?.sendForGuild(reminder.target.guild, 'reminder', reminder)
+          WebSocket?.sendRoot('reminderUser', reminder)
+        }else{
+          WebSocket?.sendForGuild(reminder.target.guild, 'reminderGuild', reminder)
         }
       }
     }
