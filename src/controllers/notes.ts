@@ -1,4 +1,3 @@
-import { Collection } from 'discord.js';
 import { Router } from 'express';
 import { Collections, db } from '../services/database';
 

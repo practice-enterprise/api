@@ -4,14 +4,9 @@ import { Collections, db } from '../services/database';
 export class ReminderController {
   static router(): Router {
     return Router({ caseSensitive: false })
-      .get('/', async (req, res, next) => {
-        db.collection(Collections.reminders).get()
-          .then((snapshot) => res.send(snapshot.docs.map((d) => d.data())))
-          .finally(() => next());
-      })
-      .put('/', (req, res, next) => {
+      .post('/', (req, res, next) => {
         db.collection(Collections.reminders)
-          .doc(req.body.id)
+          .doc()
           .set(req.body)
           .then(() => res.sendStatus(204))
           .finally(() => next());
@@ -25,8 +20,7 @@ export class ReminderController {
       })
       .delete('/', (req, res, next) => {
         db.collection(Collections.reminders)
-          .doc(req.body.id)
-          .delete()
+          .doc((req.body.id)).delete()
           .then(() => res.sendStatus(204))
           .finally(() => next());
       });
