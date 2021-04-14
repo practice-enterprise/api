@@ -101,19 +101,19 @@ export class CanvasController {
       });
   }
 
-  static async getCourses(discordID: string, canvasInstanceID: string): Promise<CanvasCourse[] | undefined> {
+  static async getCourses(discordID: string, canvasInstanceID: string): Promise<CanvasCourse[]> {
     const snap = (await db.collection(Collections.users).where('discord.id', '==', discordID).get());
     if (snap.empty) {
-      return undefined;
+      throw new Error(`no user with id ${discordID}`)
     }
     const user = snap.docs[0].data();
     if (user.canvas.token === undefined) {
-      return undefined;
+      throw new Error(`no cqnvas token for user ${discordID}`)
     }
 
     const canvas = (await db.collection(Collections.canvas).doc(canvasInstanceID).get()).data();
     if (!canvas) {
-      return undefined;
+      throw new Error(`could not find canvas config with id ${canvasInstanceID} for user ${discordID}`)
     }
 
     const courses = await Axios.request<CanvasCourse[]>({
@@ -132,18 +132,24 @@ export class CanvasController {
       // Update user courses in DB
       user.courses = courses.map((c) => c.id);
       db.collection(Collections.users).doc(user.id).set(user);
+      return courses;
+    } else {
+      throw new Error(`something went wrong with the request for courses of user: ${discordID}`)
     }
 
-    return courses;
   }
 
-  static async getCalenderAssignments(user: User): Promise<CalenderAssignment[] | void> {
-    if (user.courses == undefined) {
-      throw new Error('no canvas courses')
+  static async getCalenderAssignments(user: User, warningDays: number): Promise<CalenderAssignment[] | void> {
+    if (user.courses == undefined || user.courses?.length == 0) {
+      throw new Error(`no canvas courses for discord user: ${user.discord.id}`)
     }
 
     const canvas = (await db.collection(Collections.canvas).doc(user.canvas.instanceID).get()).data();
-    if (canvas == undefined) { throw new Error(`no instance with id ${user.canvas.instanceID}`) }
+    if (canvas == undefined) {
+      throw new Error(`no instance with id ${user.canvas.instanceID}`)
+    }
+
+    const endT = new Date(Date.now() + warningDays * 24 * 60 * 60 * 1000);
 
     return Axios.request<CalenderAssignment[]>({
       headers: {
@@ -152,11 +158,8 @@ export class CanvasController {
       },
       params: {
         type: 'assignment',
-        all_events: true,
-        per_page:100,
-        //TODO add dynamic (start and) end dates  
-        //start_date: '2021-04-01',
-        //end_date:'2021-05-20',
+        per_page: 100,
+        end_date: `${endT.getFullYear()}-${("0" + (endT.getMonth() + 1)).slice(-2)}-${("0" + endT.getDate()).slice(-2)}`,
         'context_codes': user.courses.map(c => 'course_' + c)
       },
       method: 'GET',

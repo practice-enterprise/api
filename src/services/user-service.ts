@@ -6,6 +6,7 @@ import { DiscordService } from './discord-service';
 import { Guild } from '../models/guild';
 import { CanvasController } from '../controllers/canvas';
 import { WebSocket } from "../app";
+import { ReminderService } from './reminder-service';
 
 export class UserService {
   static async getForCourse(courseID: number, canvasInstanceID?: string): Promise<User | undefined> {
@@ -89,9 +90,21 @@ export class UserService {
         'guildID': guild.id,
         'userID': user.discord.id,
         'roleTypes': validRoleTypes,
-        'configRoles': guild.roles 
+        'configRoles': guild.roles
       });
     }
+  }
+
+  static initForUsers(interval: number): NodeJS.Timeout {
+    return setInterval(async () => {
+      const users = (await db.collection(Collections.users).get()).docs.map(d => d.data()) as User[];
+      for (const user of users) {
+        this.updateRoles(user)
+          .catch(err => console.log(err));
+        ReminderService.sendAssignment(user, 2)
+          .catch(err => console.error(err));
+      }
+    }, interval);
   }
 }
 

@@ -10,12 +10,8 @@ import { createServer } from 'http';
 import { Env } from './util/env';
 import { AnnouncementService } from './services/announcement-service';
 import { ReminderService } from './services/reminder-service';
-
-//temp for testing
 import { UserService } from './services/user-service';
-import { Collections, db } from './services/database';
-import { User } from './models/users';
-import { AssignmentReminderService } from './services/assignment-reminders';
+
 
 
 if (process.env.NODE_ENV == null || process.env.NODE_ENV === 'develepmont') {
@@ -53,12 +49,8 @@ export let WebSocket: SocketManager | undefined = undefined;
 
   ReminderService.initSendReminder(60000);
   AnnouncementService.initAnnouncementJob(60000);
-
-  //temp for testing
-  setInterval(async () => {
-    const user = (await db.collection(Collections.users).get()).docs.map(d => d.data()) as User[];
-    UserService.updateRoles(user[0]).catch(err => console.log(err));
-    AssignmentReminderService.sendReminders(user[0], 2);
-  }, 6000);
+  //role update + assignment reminders
+  UserService.initForUsers(60000);
+  
 
 })();
