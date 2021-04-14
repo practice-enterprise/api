@@ -1,8 +1,6 @@
 import { CanvasController } from "../controllers/canvas";
 import { User } from "../models/users";
 import { WebSocket } from "../app";
-import { Collections, db } from "./database";
-
 
 export class AssignmentReminderService {
   static async sendReminders(user: User, warningDays: number) {
@@ -16,15 +14,16 @@ export class AssignmentReminderService {
       console.log(`assignments for ${user.discord.id} is up to date`); 
       return; 
     }
-
     //reminds warningDays amount of days ahead 2 would mean 2 days before you have to hand in you get a notification
     if (new Date(assignments[i].end_at).getTime() <= (new Date(Date.now() + warningDays*24 * 60 * 60 *1000)).getTime()) {
       WebSocket?.sendRoot('assignmentDM', {
         id: user.id, 
         assignmentID: assignments[i].id,
         userDiscordID: user.discord.id,
-        title: assignments[i].title,
-        description: assignments[i].description 
+        message: {//messageEmbedOptions
+          title:assignments[i].title,
+          description:assignments[i].description
+        }
       });
     } 
   }
