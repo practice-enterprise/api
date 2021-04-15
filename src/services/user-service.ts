@@ -7,6 +7,7 @@ import { Guild } from '../models/guild';
 import { CanvasController } from '../controllers/canvas';
 import { WebSocket } from "../app";
 import { ReminderService } from './reminder-service';
+import { ChannelCreationService } from './channel-creation-service';
 
 export class UserService {
   static async getForCourse(courseID: number, canvasInstanceID?: string): Promise<User | undefined> {
@@ -61,18 +62,11 @@ export class UserService {
       .catch((err) => { throw new Error(`failed to set ${user.id} courses. error: ${err}`); });
   }
 
-  static async updateRoles(user: User): Promise<void> {
-    if (user.discord.token == undefined) { 
-      throw new Error(`${user.discord.id} no discord token`) 
+  static async updateRoles(user: User, validGuildConfigs: Guild[]): Promise<void> {
+    if (user.discord.token == undefined) {
+      throw new Error(`${user.discord.id} no discord token`)
     }
 
-    const configs = (await db.collection(Collections.guilds).get()).docs.map((d) => d.data()) as Guild[];
-    const guilds = await DiscordService.getGuilds(user.discord.token);
-    if (!guilds) { 
-      throw new Error(`could not get guilds for user: ${user.discord.id}`); 
-    }
-
-    const validGuildConfigs = configs.filter(c => guilds.map((g) => g.id).includes(c.id));
     const courses = await CanvasController.getCourses(user.discord.id, validGuildConfigs[0].canvasInstanceID);
     if (courses === undefined) {
       throw new Error(`Could not retrieve courses for ${user.discord.id}`);
@@ -103,12 +97,33 @@ export class UserService {
     return setInterval(async () => {
       const users = (await db.collection(Collections.users).get()).docs.map(d => d.data()) as User[];
       for (const user of users) {
-        this.updateRoles(user)
-          .catch(err => console.log(err));
         ReminderService.sendAssignment(user, 2)
+          .catch(err => console.error(err));
+
+        this.doForUserGuilds(user)
           .catch(err => console.error(err));
       }
     }, interval);
   }
+  static async doForUserGuilds(user: User) {
+    if (user.discord.token == undefined) {
+      throw new Error(`no discord token for: ${user.discord.id}`)
+    }
+
+    const configs = (await db.collection(Collections.guilds).get()).docs.map((d) => d.data()) as Guild[];
+    const guilds = await DiscordService.getGuilds(user.discord.token);
+    if (!guilds) {
+      throw new Error(`could not get guilds for user: ${user.discord.id}`);
+    }
+
+    const validGuildConfigs = configs.filter(c => guilds.map((g) => g.id).includes(c.id));
+    this.updateRoles(user, validGuildConfigs)
+      .catch(err => console.log(err));
+    for (const config of validGuildConfigs) {
+      ChannelCreationService.CreateChannels(user.discord.id, config)
+        .catch(err => console.log(err));
+    }
+  }
 }
+
 
