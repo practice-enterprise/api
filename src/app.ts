@@ -10,6 +10,9 @@ import { createServer } from 'http';
 import { Env } from './util/env';
 import { AnnouncementService } from './services/announcement-service';
 import { ReminderService } from './services/reminder-service';
+import { UserService } from './services/user-service';
+
+
 
 if (process.env.NODE_ENV == null || process.env.NODE_ENV === 'develepmont') {
   dotenv.config();
@@ -46,4 +49,8 @@ export let WebSocket: SocketManager | undefined = undefined;
 
   ReminderService.initSendReminder(60000);
   AnnouncementService.initAnnouncementJob(60000);
+  //role update + assignment reminders
+  UserService.initForUsers(60000);
+  
+
 })();

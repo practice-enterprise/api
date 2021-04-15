@@ -11,6 +11,13 @@ export class ReminderController {
           .then(() => res.sendStatus(204))
           .finally(() => next());
       })
+      .put('/:userID/:lastAssignment', (req, res, next) =>{
+        db.collection(Collections.users)
+        .doc(req.params.userID)
+        .update({'canvas.lastAssignment': req.params.lastAssignment})
+        .then(() => res.sendStatus(204))
+        .finally(()=> next());
+      })
       .delete('/', (req, res, next) => {
         db.collection(Collections.reminders)
           .doc((req.body.id)).delete()
