@@ -8,7 +8,6 @@ import TurndownService from "turndown";
 export class ReminderService {
   static async initSendReminder(interval: number): Promise<NodeJS.Timeout> {
     return setInterval(async () => {
-
       const reminders: Reminder[] = await db.collection(Collections.reminders).get().then((snapshot) => (snapshot.docs.map((d) => { const data = d.data(); data.id = d.id; return data as Reminder })));
       for (const reminder of reminders) {
         const time = new Date(reminder.date);
@@ -49,7 +48,7 @@ export class ReminderService {
       });
     } else {
       db.collection(Collections.users).doc(user.id)
-        .update({ 'canvas.lastAssignment': assignment.id })
+        .update({ 'canvas.lastAssignment': assignment.id });
     }
   }
 }

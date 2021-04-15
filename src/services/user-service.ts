@@ -62,11 +62,15 @@ export class UserService {
   }
 
   static async updateRoles(user: User): Promise<void> {
-    if (user.discord.token == undefined) { throw new Error(`${user.discord.id} no discord token`) }
+    if (user.discord.token == undefined) { 
+      throw new Error(`${user.discord.id} no discord token`) 
+    }
 
     const configs = (await db.collection(Collections.guilds).get()).docs.map((d) => d.data()) as Guild[];
     const guilds = await DiscordService.getGuilds(user.discord.token);
-    if (!guilds) { throw new Error(`could not get guilds for user: ${user.discord.id}`); }
+    if (!guilds) { 
+      throw new Error(`could not get guilds for user: ${user.discord.id}`); 
+    }
 
     const validGuildConfigs = configs.filter(c => guilds.map((g) => g.id).includes(c.id));
     const courses = await CanvasController.getCourses(user.discord.id, validGuildConfigs[0].canvasInstanceID);
