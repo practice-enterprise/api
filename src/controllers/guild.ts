@@ -19,6 +19,14 @@ export class GuildController {
           .set(req.body)
           .then(() => res.sendStatus(204))
           .finally(() => next());
+      })
+      .put('/create/:id', (req, res, next) => {
+        db.collection(Collections.guilds)
+          .doc(req.params.id)
+          .set(req.body)
+          .then(() => res.sendStatus(204))
+          .finally(() => next());
       });
+
   }
 }
