@@ -21,7 +21,6 @@ export class GuildController {
           .finally(() => next());
       })
       .put('/create/:id', (req, res, next) => {
-        console.log('create');
         db.collection(Collections.guilds)
           .doc(req.params.id)
           .set(req.body)
