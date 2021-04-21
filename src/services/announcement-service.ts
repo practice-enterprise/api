@@ -8,6 +8,7 @@ import { Collections, db } from "./database";
 import { UserService } from "./user-service";
 import { Guild } from "../models/guild";
 import { User } from "../models/users";
+import { AnnouncementData } from "../models/announcement"
 
 export class AnnouncementService {
   static async getAnnouncements(canvasInstanceID: string, courseID: number, user: User): Promise<CanvasAnnouncement[] | undefined> {
@@ -120,7 +121,7 @@ export class AnnouncementService {
             if (canvas.lastAnnounce[courseID] === undefined) {
               // No lastAnnounceID set. Posting last announcement and setting ID.
               const embed = await this.buildAnnouncementEmbed(announcements[0], courseID, canvas.id, user.discord.id);
-              const data = {
+              const data: AnnouncementData = {
                 channelID: channelID,
                 embed: embed
               }
@@ -142,7 +143,7 @@ export class AnnouncementService {
                 const embed = await this.buildAnnouncementEmbed(announcements[i], courseID, canvas.id, user.discord.id);
   
                 // Send 1 of new announcement(s)
-                const data = {
+                const data: AnnouncementData = {
                   channelID: channelID,
                   embed: embed
                 }
