@@ -181,6 +181,6 @@ export interface CalenderAssignment{
   description: string,
   end_at: string,
   html_url: string
-  lock_info: object
+  lock_info: any
   
 }

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import Axios from 'axios';
-import { CalenderAssignment, CanvasCourse, CanvasModule, CanvasModuleItem } from '../models/canvas'
+import { CalenderAssignment, CanvasCourse, CanvasModule, CanvasModuleItem } from '../models/canvas';
 import { Collections, db } from '../services/database';
 import { User } from '../models/users';
 
@@ -104,16 +104,16 @@ export class CanvasController {
   static async getCourses(discordID: string, canvasInstanceID: string): Promise<CanvasCourse[]> {
     const snap = (await db.collection(Collections.users).where('discord.id', '==', discordID).get());
     if (snap.empty) {
-      throw new Error(`no user with id ${discordID}`)
+      throw new Error(`no user with id ${discordID}`);
     }
     const user = snap.docs[0].data();
     if (user.canvas.token === undefined) {
-      throw new Error(`no cqnvas token for user ${discordID}`)
+      throw new Error(`no cqnvas token for user ${discordID}`);
     }
 
     const canvas = (await db.collection(Collections.canvas).doc(canvasInstanceID).get()).data();
     if (!canvas) {
-      throw new Error(`could not find canvas config with id ${canvasInstanceID} for user ${discordID}`)
+      throw new Error(`could not find canvas config with id ${canvasInstanceID} for user ${discordID}`);
     }
 
     const courses = await Axios.request<CanvasCourse[]>({
@@ -134,19 +134,19 @@ export class CanvasController {
       db.collection(Collections.users).doc(user.id).set(user);
       return courses;
     } else {
-      throw new Error(`something went wrong with the request for courses of user: ${discordID}`)
+      throw new Error(`something went wrong with the request for courses of user: ${discordID}`);
     }
 
   }
 
   static async getCalenderAssignments(user: User, warningDays: number): Promise<CalenderAssignment[] | void> {
     if (user.courses == undefined || user.courses?.length == 0) {
-      throw new Error(`no canvas courses for discord user: ${user.discord.id}`)
+      throw new Error(`no canvas courses for discord user: ${user.discord.id}`);
     }
 
     const canvas = (await db.collection(Collections.canvas).doc(user.canvas.instanceID).get()).data();
     if (canvas == undefined) {
-      throw new Error(`no instance with id ${user.canvas.instanceID}`)
+      throw new Error(`no instance with id ${user.canvas.instanceID}`);
     }
 
     const endT = new Date(Date.now() + warningDays * 24 * 60 * 60 * 1000);
@@ -159,7 +159,7 @@ export class CanvasController {
       params: {
         type: 'assignment',
         per_page: 100,
-        end_date: `${endT.getFullYear()}-${("0" + (endT.getMonth() + 1)).slice(-2)}-${("0" + endT.getDate()).slice(-2)}`,
+        end_date: `${endT.getFullYear()}-${('0' + (endT.getMonth() + 1)).slice(-2)}-${('0' + endT.getDate()).slice(-2)}`,
         'context_codes': user.courses.map(c => 'course_' + c)
       },
       method: 'GET',

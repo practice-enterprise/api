@@ -1,19 +1,19 @@
-import Axios from "axios";
-import { CanvasAnnouncement, CanvasInstance } from "../models/canvas";
+import Axios from 'axios';
+import { CanvasAnnouncement, CanvasInstance } from '../models/canvas';
 import TurndownService from 'turndown';
-import { CanvasController } from "../controllers/canvas";
-import { MessageEmbed } from "discord.js";
-import { WebSocket } from "../app";
-import { Collections, db } from "./database";
-import { UserService } from "./user-service";
-import { Guild } from "../models/guild";
-import { User } from "../models/users";
+import { CanvasController } from '../controllers/canvas';
+import { MessageEmbed } from 'discord.js';
+import { WebSocket } from '../app';
+import { Collections, db } from './database';
+import { UserService } from './user-service';
+import { Guild } from '../models/guild';
+import { User } from '../models/users';
 
 export class AnnouncementService {
   static async getAnnouncements(canvasInstanceID: string, courseID: number, user: User): Promise<CanvasAnnouncement[] | undefined> {
     if (user.canvas.token === undefined) {
       // There is no token
-      console.error('No token defined')
+      console.error('No token defined');
       return undefined;
     }
 
@@ -81,8 +81,6 @@ export class AnnouncementService {
         const AllCourseIDs = guilds.map(g => Object.keys(g.courseChannels.channels).map(k => Number(k))).flat();
         // Remove dupes
         const courseIDs = Array.from(new Set(AllCourseIDs));
-        
-        console.log('IDS: ', courseIDs);
 
         if (canvas.lastAnnounce == null ) {
           canvas.lastAnnounce = {};
@@ -106,7 +104,7 @@ export class AnnouncementService {
           }
   
           // Checking for new announcements
-          const lastAnnounceID = canvas.lastAnnounce[courseID]
+          const lastAnnounceID = canvas.lastAnnounce[courseID];
           for (const guild of guilds) {
             const channelID = guild.courseChannels.channels[courseID];
   
@@ -123,7 +121,7 @@ export class AnnouncementService {
               const data = {
                 channelID: channelID,
                 embed: embed
-              }
+              };
               WebSocket?.sendForGuild(guild.id, 'announcement', data);
   
               continue;
@@ -145,7 +143,7 @@ export class AnnouncementService {
                 const data = {
                   channelID: channelID,
                   embed: embed
-                }
+                };
                 WebSocket?.sendForGuild(guild.id, 'announcement', data);
               }
             }
