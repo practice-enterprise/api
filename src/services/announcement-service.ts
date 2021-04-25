@@ -8,7 +8,6 @@ import { Collections, db } from "./database";
 import { UserService } from "./user-service";
 import { Guild } from "../models/guild";
 import { User } from "../models/users";
-import { AnnouncementData } from "../models/announcement"
 
 export class AnnouncementService {
   static async getAnnouncements(canvasInstanceID: string, courseID: number, user: User): Promise<CanvasAnnouncement[] | undefined> {
@@ -83,8 +82,6 @@ export class AnnouncementService {
         // Remove dupes
         const courseIDs = Array.from(new Set(AllCourseIDs));
         
-        console.log('IDS: ', courseIDs);
-
         if (canvas.lastAnnounce == null ) {
           canvas.lastAnnounce = {};
         }
@@ -121,11 +118,10 @@ export class AnnouncementService {
             if (canvas.lastAnnounce[courseID] === undefined) {
               // No lastAnnounceID set. Posting last announcement and setting ID.
               const embed = await this.buildAnnouncementEmbed(announcements[0], courseID, canvas.id, user.discord.id);
-              const data: AnnouncementData = {
+              WebSocket?.sendForGuild(guild.id, 'announcement', {
                 channelID: channelID,
                 embed: embed
-              }
-              WebSocket?.sendForGuild(guild.id, 'announcement', data);
+              });
   
               continue;
             }
@@ -143,11 +139,10 @@ export class AnnouncementService {
                 const embed = await this.buildAnnouncementEmbed(announcements[i], courseID, canvas.id, user.discord.id);
   
                 // Send 1 of new announcement(s)
-                const data: AnnouncementData = {
+                WebSocket?.sendForGuild(guild.id, 'announcement', {
                   channelID: channelID,
                   embed: embed
-                }
-                WebSocket?.sendForGuild(guild.id, 'announcement', data);
+                });
               }
             }
           }
