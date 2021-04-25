@@ -22,7 +22,6 @@ export class CanvasController {
       /* # Canvas LMS API requests # */
       /* Find courses for a discord user*/
       .get('/:discordID/courses', async (req, res, next) => {
-        console.log('here.')
         this.getCourses(req.params.discordID)
           .then((courses) => res.send(courses))
           .catch(() => res.sendStatus(404))
@@ -37,7 +36,6 @@ export class CanvasController {
           return next();
         }
         const user = snap.docs[0].data() as User;
-        console.log('===========================',user);
         if (user.canvas.token === undefined || user.canvas.instanceID === undefined) {
           // There is no token
           res.sendStatus(404);
@@ -45,7 +43,6 @@ export class CanvasController {
         }
 
         const canvas = (await db.collection(Collections.canvas).doc(user.canvas.instanceID).get()).data();
-        console.log('CANVAS: ',canvas);
         if (!canvas) {
           res.sendStatus(404);
           return next();
@@ -105,13 +102,11 @@ export class CanvasController {
   }
 
   static async getCourses(discordID: string): Promise<CanvasCourse[]> {
-    console.log(discordID);
     const snap = (await db.collection(Collections.users).where('discord.id', '==', discordID).get());
     if (snap.empty) {
       throw new Error(`no user with id ${discordID}`)
     }
     const user = snap.docs[0].data() as User;
-    console.log(user);
     if (user.canvas.token == null) {
       throw new Error(`No canvas token for discord user ${discordID}`)
     }
