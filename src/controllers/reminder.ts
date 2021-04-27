@@ -31,7 +31,7 @@ export class ReminderController {
           res.sendStatus(404);
           next();
         }
-        res.send({ offset: users.docs[0].data().offset });
+        res.send( users.docs[0].data().timeZone);
         next();
       })
       .put('/offset/:id', async (req, res, next) => {
@@ -41,7 +41,8 @@ export class ReminderController {
           res.sendStatus(404);
           next();
         }
-        db.collection(Collections.users).doc(users.docs[0].id).update({offset: req.params.offset});
+        db.collection(Collections.users).doc(users.docs[0].id).update({timeZone: req.body.tz});
+        res.sendStatus(204);
         next();
       });
   }
