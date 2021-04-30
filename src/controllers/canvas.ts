@@ -139,7 +139,7 @@ export class CanvasController {
 
   }
 
-  static async getCalenderAssignments(user: User, warningDays: number): Promise<CalenderAssignment[] | void> {
+  static async getCalenderAssignments(user: User, warningDays: number): Promise<CalenderAssignment[]> {
     if (user.courses == undefined || user.courses?.length == 0) {
       throw new Error(`no canvas courses for discord user: ${user.discord.id}`);
     }

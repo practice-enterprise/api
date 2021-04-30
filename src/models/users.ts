@@ -4,11 +4,11 @@ export interface User {
     id: string,
     token?: string,
   },
-  canvas: {
+  canvas: Partial<{
     id?: string,
     token?: string
     instanceID: string,
     lastAssignment: string
-  },
+  }>,
   courses?: string[],
 }
