@@ -1,21 +1,28 @@
-import { isUserTarget, Reminder } from "../models/reminder";
+import { isGuildTarget, Reminder } from "../models/reminder";
 import { Collections, db } from "./database"
 import { WebSocket } from "../app";
 import { User } from "../models/users";
 import { CanvasController } from "../controllers/canvas";
 import TurndownService from "turndown";
+import { DateTime, Zone } from 'luxon'
 
 export class ReminderService {
   static async initSendReminder(interval: number): Promise<NodeJS.Timeout> {
     return setInterval(async () => {
       const reminders: Reminder[] = await db.collection(Collections.reminders).get().then((snapshot) => (snapshot.docs.map((d) => { const data = d.data(); data.id = d.id; return data as Reminder })));
       for (const reminder of reminders) {
-        const time = new Date(reminder.date);
-        if (time.getTime() < Date.now()) {
-          if (isUserTarget(reminder.target)) {
-            WebSocket?.sendRoot('reminderUser', reminder)
-          } else {
+        const users = await db.collection(Collections.users)
+          .where('discord.id', '==', reminder.target.user).get()
+        if (users.empty) {
+          continue
+        }
+        const time = DateTime.fromJSDate(new Date(reminder.date))
+          .setZone(users.docs[0].data().timeZone, {keepLocalTime: true})
+        if (time.diffNow().valueOf() < 0) {
+          if (isGuildTarget(reminder.target)) {
             WebSocket?.sendForGuild(reminder.target.guild, 'reminderGuild', reminder)
+          } else {
+            WebSocket?.sendRoot('reminderUser', reminder)
           }
         }
       }
