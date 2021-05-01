@@ -16,7 +16,8 @@ export class ReminderService {
         if (users.empty) {
           continue
         }
-        const time = DateTime.fromJSDate(new Date(reminder.date))
+
+        const time = DateTime.fromJSDate(new Date(reminder.date), {zone: 'utc'})
           .setZone(users.docs[0].data().timeZone, {keepLocalTime: true})
         if (time.diffNow().valueOf() < 0) {
           if (isGuildTarget(reminder.target)) {

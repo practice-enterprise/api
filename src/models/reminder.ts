@@ -8,7 +8,7 @@ export type ReminderTarget = {
 
 export interface Reminder {
   id: string;
-  date: Date | string,
+  date: string,
   content: string;
   target: ReminderTarget
 }
