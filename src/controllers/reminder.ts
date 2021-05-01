@@ -24,7 +24,7 @@ export class ReminderController {
           .then(() => res.sendStatus(204))
           .finally(() => next());
       })
-      .get('/offset/:id', async (req, res, next) => {
+      .get('/timezone/:id', async (req, res, next) => {
         const users = await db.collection(Collections.users)
           .where('discord.id', '==', req.params.id).get()
         if (users.empty) {
@@ -34,7 +34,7 @@ export class ReminderController {
         res.send( users.docs[0].data().timeZone);
         next();
       })
-      .put('/offset/:id', async (req, res, next) => {
+      .put('/timezone/:id', async (req, res, next) => {
         const users = await db.collection(Collections.users)
           .where('discord.id', '==', req.params.id).get()
         if (users.empty) {
