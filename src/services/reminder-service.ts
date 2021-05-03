@@ -6,6 +6,8 @@ import { CanvasController } from "../controllers/canvas";
 import TurndownService from "turndown";
 import { DateTime, Zone } from 'luxon'
 
+const defaultZone = 'Europe/Brussels';
+
 export class ReminderService {
   static async initSendReminder(interval: number): Promise<NodeJS.Timeout> {
     return setInterval(async () => {
@@ -17,8 +19,8 @@ export class ReminderService {
           continue
         }
 
-        const time = DateTime.fromJSDate(new Date(reminder.date), {zone: 'utc'})
-          .setZone(users.docs[0].data().timeZone, {keepLocalTime: true})
+        const time = DateTime.fromISO(reminder.date, {zone: 'utc'})
+          .setZone(users.docs[0].data().timeZone || defaultZone, {keepLocalTime: true})
         if (time.diffNow().valueOf() < 0) {
           if (isGuildTarget(reminder.target)) {
             WebSocket?.sendForGuild(reminder.target.guild, 'reminderGuild', reminder)
