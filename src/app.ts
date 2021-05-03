@@ -51,6 +51,4 @@ export let WebSocket: SocketManager | undefined = undefined;
   AnnouncementService.initAnnouncementJob(60000);
   //role update + assignment reminders
   UserService.initForUsers(60000);
-  
-
 })();

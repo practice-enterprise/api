@@ -29,10 +29,10 @@ export class UserService {
     return users[index] as User;
   }
 
-  /**Updates all course IDs for a user. Returns true if succesful */
-  static async updateUserCourses(user: User, canvasInstanceID: string): Promise<void> {
-    if (user.canvas.token === undefined) { throw new Error(`${user.id} no canvas token`) }
-    const canvas = (await db.collection(Collections.canvas).doc(canvasInstanceID).get()).data();
+  /**Updates all course IDs for a user.*/
+  static async updateUserCourses(user: User): Promise<void> {
+    if (user.canvas.token === undefined || user.canvas.id === undefined) { throw new Error(`${user.id} no canvas token`) }
+    const canvas = (await db.collection(Collections.canvas).doc(user.canvas.id).get()).data();
     if (canvas === undefined) {
       throw new Error(`could not retrieve courses of ${user.id}`);
     }
@@ -56,7 +56,7 @@ export class UserService {
       return d.data.data.allCourses;
     });
     // TODO: check refresh tokens etc
-    user.courses = courses.map((c) => c._id);
+    user.courses = courses.map((c) => parseInt(c._id));
 
     await db.collection(Collections.users).doc(user.id).set(user)
       .catch((err) => { throw new Error(`failed to set ${user.id} courses. error: ${err}`); });
@@ -67,10 +67,7 @@ export class UserService {
       throw new Error(`${user.discord.id} no discord token`)
     }
 
-    const courses = await CanvasController.getCourses(user.discord.id, validGuildConfigs[0].canvasInstanceID);
-    if (courses === undefined) {
-      throw new Error(`Could not retrieve courses for ${user.discord.id}`);
-    }
+    const courses = await CanvasController.getCourses(user.discord.id);
 
     const validRoleTypes: string[] = [];
     for (const course of courses) {

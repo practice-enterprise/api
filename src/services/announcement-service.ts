@@ -38,10 +38,10 @@ export class AnnouncementService {
     //TODO: handle refresh/ 401/403
   }
 
-  static async buildAnnouncementEmbed(announcement: CanvasAnnouncement, courseID: number, canvasInstanceID: string, discordUserID: string): Promise<MessageEmbed> {
+  static async buildAnnouncementEmbed(announcement: CanvasAnnouncement, courseID: number, discordUserID: string): Promise<MessageEmbed> {
     const ts = new TurndownService();
 
-    const courses = await CanvasController.getCourses(discordUserID, canvasInstanceID);
+    const courses = await CanvasController.getCourses(discordUserID);
     if (courses === undefined) {
       throw new Error('Courses not defined. Likely invalid or undefined token from users.');
     }
@@ -117,8 +117,8 @@ export class AnnouncementService {
             // Last announcement ID is undefined
             if (canvas.lastAnnounce[courseID] === undefined) {
               // No lastAnnounceID set. Posting last announcement and setting ID.
-              const embed = await this.buildAnnouncementEmbed(announcements[0], courseID, canvas.id, user.discord.id);
-              WebSocket?.sendForGuild(guild.id, 'announcement', {
+              const embed = await this.buildAnnouncementEmbed(announcements[0], courseID, user.discord.id);
+              const data = {
                 channelID: channelID,
                 embed: embed
               });
@@ -136,7 +136,7 @@ export class AnnouncementService {
             // Posting new announcements
             if(index !== 0 && index !== -1) {
               for (let i = index - 1; i >= 0; i--) {
-                const embed = await this.buildAnnouncementEmbed(announcements[i], courseID, canvas.id, user.discord.id);
+                const embed = await this.buildAnnouncementEmbed(announcements[i], courseID, user.discord.id);
   
                 // Send 1 of new announcement(s)
                 WebSocket?.sendForGuild(guild.id, 'announcement', {
