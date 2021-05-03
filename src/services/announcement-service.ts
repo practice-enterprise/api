@@ -121,8 +121,7 @@ export class AnnouncementService {
               const data = {
                 channelID: channelID,
                 embed: embed
-              }
-              WebSocket?.sendForGuild(guild.id, 'announcement', data);
+              });
   
               continue;
             }
@@ -140,11 +139,10 @@ export class AnnouncementService {
                 const embed = await this.buildAnnouncementEmbed(announcements[i], courseID, user.discord.id);
   
                 // Send 1 of new announcement(s)
-                const data = {
+                WebSocket?.sendForGuild(guild.id, 'announcement', {
                   channelID: channelID,
                   embed: embed
-                }
-                WebSocket?.sendForGuild(guild.id, 'announcement', data);
+                });
               }
             }
           }
