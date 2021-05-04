@@ -118,10 +118,6 @@ export class AnnouncementService {
             if (canvas.lastAnnounce[courseID] === undefined) {
               // No lastAnnounceID set. Posting last announcement and setting ID.
               const embed = await this.buildAnnouncementEmbed(announcements[0], courseID, user.discord.id);
-              const data = {
-                channelID: channelID,
-                embed: embed
-              };
   
               continue;
             }
