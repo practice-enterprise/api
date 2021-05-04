@@ -121,7 +121,7 @@ export class AnnouncementService {
               const data = {
                 channelID: channelID,
                 embed: embed
-              });
+              };
   
               continue;
             }
