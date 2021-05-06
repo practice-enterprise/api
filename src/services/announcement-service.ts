@@ -68,11 +68,10 @@ export class AnnouncementService {
 
   // FIX: API checks before bot can receive events -> lastAnnounce is set to something that isn't posted
   // TODO: check rate limits. Currently 1 minute interval. We want this as low as is allowed.
-  static initAnnouncementJob(interval: number): NodeJS.Timeout {
+  static async initAnnouncementJob(interval: number): Promise<NodeJS.Timeout> {
     return setInterval(async () => {
       if(WebSocket == null) {
-        Logger.error('WebSocket is undefined!');
-        throw Error('WebSocket is undefined.');
+        throw Error('WebSocket is undefined (won\'t be able to send announcements), skipping announcement check.');
       }
 
       const canvasInstances = (await db.collection(Collections.canvas).get()).docs.map((d) => d.data()) as CanvasInstance[];
