@@ -1,11 +1,11 @@
 import Axios from 'axios';
-import { User } from "../models/users";
-import { allCourses } from "../models/canvas";
-import { Collections, db } from "./database";
+import { User } from '../models/users';
+import { allCourses } from '../models/canvas';
+import { Collections, db } from './database';
 import { DiscordService } from './discord-service';
 import { Guild } from '../models/guild';
 import { CanvasController } from '../controllers/canvas';
-import { WebSocket } from "../app";
+import { WebSocket } from '../app';
 import { ReminderService } from './reminder-service';
 import { ChannelCreationService } from './channel-creation-service';
 
@@ -25,13 +25,15 @@ export class UserService {
     }
 
     /*Random index for balancing user tokens */
-    const index = Math.floor(Math.random() * users.length)
+    const index = Math.floor(Math.random() * users.length);
     return users[index] as User;
   }
 
   /**Updates all course IDs for a user.*/
   static async updateUserCourses(user: User): Promise<void> {
-    if (user.canvas.token === undefined || user.canvas.id === undefined) { throw new Error(`${user.id} no canvas token`) }
+    if (user.canvas.token === undefined || user.canvas.id === undefined) {
+      throw new Error(`${user.id} no canvas token`);
+    }
     const canvas = (await db.collection(Collections.canvas).doc(user.canvas.id).get()).data();
     if (canvas === undefined) {
       throw new Error(`could not retrieve courses of ${user.id}`);
@@ -64,7 +66,7 @@ export class UserService {
 
   static async updateRoles(user: User, validGuildConfigs: Guild[]): Promise<void> {
     if (user.discord.token == undefined) {
-      throw new Error(`${user.discord.id} no discord token`)
+      throw new Error(`${user.discord.id} no discord token`);
     }
 
     const courses = await CanvasController.getCourses(user.discord.id);
@@ -102,9 +104,10 @@ export class UserService {
       }
     }, interval);
   }
-  static async doForUserGuilds(user: User) {
+
+  static async doForUserGuilds(user: User): Promise<void> {
     if (user.discord.token == undefined) {
-      throw new Error(`no discord token for: ${user.discord.id}`)
+      throw new Error(`no discord token for: ${user.discord.id}`);
     }
 
     const configs = (await db.collection(Collections.guilds).get()).docs.map((d) => d.data()) as Guild[];
@@ -120,6 +123,7 @@ export class UserService {
       ChannelCreationService.CreateChannels(user.discord.id, config)
         .catch(err => console.log(err));
     }
+    return;
   }
 }
 
