@@ -26,7 +26,7 @@ export class ReminderController {
       })
       .get('/timezone/:id', async (req, res, next) => {
         const users = await db.collection(Collections.users)
-          .where('discord.id', '==', req.params.id).get()
+          .where('discord.id', '==', req.params.id).get();
         if (users.empty) {
           res.sendStatus(404);
           next();
@@ -36,7 +36,7 @@ export class ReminderController {
       })
       .put('/timezone/:id', async (req, res, next) => {
         const users = await db.collection(Collections.users)
-          .where('discord.id', '==', req.params.id).get()
+          .where('discord.id', '==', req.params.id).get();
         if (users.empty) {
           res.sendStatus(404);
           next();

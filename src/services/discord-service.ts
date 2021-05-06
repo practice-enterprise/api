@@ -1,5 +1,5 @@
-import axios from "axios";
-import { UserGuild } from "../models/discord";
+import axios from 'axios';
+import { UserGuild } from '../models/discord';
 
 export class DiscordService {
   static async getGuilds(token: string): Promise<UserGuild[]> {
