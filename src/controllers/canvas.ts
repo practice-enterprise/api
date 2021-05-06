@@ -3,6 +3,7 @@ import Axios from 'axios';
 import { CalenderAssignment, CanvasCourse, CanvasModule, CanvasModuleItem } from '../models/canvas';
 import { Collections, db } from '../services/database';
 import { User } from '../models/users';
+import { DateTime } from 'luxon';
 
 export class CanvasController {
   static router(): Router {
@@ -154,8 +155,6 @@ export class CanvasController {
       throw new Error(`no instance with id ${user.canvas.instanceID}`);
     }
 
-    const endT = new Date(Date.now() + warningDays * 24 * 60 * 60 * 1000);
-
     return Axios.request<CalenderAssignment[]>({
       headers: {
         Authorization: `Bearer ${user.canvas.token}`,
@@ -164,7 +163,7 @@ export class CanvasController {
       params: {
         type: 'assignment',
         per_page: 100,
-        end_date: `${endT.getFullYear()}-${('0' + (endT.getMonth() + 1)).slice(-2)}-${('0' + endT.getDate()).slice(-2)}`,
+        end_date: `${DateTime.fromMillis(Date.now() + warningDays * 24 * 60 * 60 * 1000).toFormat('yyyy-MM-dd')}`,
         'context_codes': user.courses.map(c => 'course_' + c)
       },
       method: 'GET',
