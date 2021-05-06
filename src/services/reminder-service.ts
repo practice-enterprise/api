@@ -12,7 +12,7 @@ export class ReminderService {
   static async initSendReminder(interval: number): Promise<NodeJS.Timeout> {
     return setInterval(async () => {
       const reminders: Reminder[] = await db.collection(Collections.reminders).get()
-        .then((snapshot) => (snapshot.docs.map((d) => { const data = d.data(); data.id = d.id; return data as Reminder;})));
+        .then((snapshot) => (snapshot.docs.map((d) => { const data = d.data(); data.id = d.id; return data as Reminder; })));
       for (const reminder of reminders) {
         const users = await db.collection(Collections.users)
           .where('discord.id', '==', reminder.target.user).get();
@@ -20,8 +20,8 @@ export class ReminderService {
           continue;
         }
 
-        const time = DateTime.fromISO(reminder.date, {zone: 'utc'})
-          .setZone(users.docs[0].data().timeZone || defaultZone, {keepLocalTime: true});
+        const time = DateTime.fromISO(reminder.date, { zone: 'utc' })
+          .setZone(users.docs[0].data().timeZone || defaultZone, { keepLocalTime: true });
         if (time.diffNow().valueOf() < 0) {
           if (isGuildTarget(reminder.target)) {
             WebSocket?.sendForGuild(reminder.target.guild, 'reminderGuild', reminder);

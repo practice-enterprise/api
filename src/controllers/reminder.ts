@@ -31,7 +31,7 @@ export class ReminderController {
           res.sendStatus(404);
           next();
         }
-        res.send( users.docs[0].data().timeZone);
+        res.send(users.docs[0].data().timeZone);
         next();
       })
       .put('/timezone/:id', async (req, res, next) => {
@@ -41,7 +41,7 @@ export class ReminderController {
           res.sendStatus(404);
           next();
         }
-        db.collection(Collections.users).doc(users.docs[0].id).update({timeZone: req.body.tz});
+        db.collection(Collections.users).doc(users.docs[0].id).update({ timeZone: req.body.tz });
         res.sendStatus(204);
         next();
       });

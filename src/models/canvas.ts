@@ -175,12 +175,12 @@ export interface Enrollment {
   user_id: number
 }
 
-export interface CalenderAssignment{
+export interface CalenderAssignment {
   id: string,
   title: string,
   description: string,
   end_at: string,
   html_url: string,
   lock_info: object
-  
+
 }
