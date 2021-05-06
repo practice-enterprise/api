@@ -8,6 +8,7 @@ import { Collections, db } from './database';
 import { UserService } from './user-service';
 import { Guild } from '../models/guild';
 import { User } from '../models/users';
+import { DateTime } from 'luxon';
 
 export class AnnouncementService {
   static async getAnnouncements(canvasInstanceID: string, courseID: number, user: User): Promise<CanvasAnnouncement[] | undefined> {
@@ -48,7 +49,7 @@ export class AnnouncementService {
     const course = courses.find(c => c.id === courseID);
 
     const postedTime = new Date(announcement.posted_at);
-    const postTimeString = postedTime.getHours() + ':' + (postedTime.getMinutes() < 10 ? '0' + postedTime.getMinutes() : postedTime.getMinutes()) + ' • ' + postedTime.getDate() + '/' + (postedTime.getMonth() + 1) + '/' + postedTime.getFullYear();
+    const postTimeString = DateTime.fromJSDate(postedTime).toFormat('hh:mm • dd/MM/yyyy');
 
     const embed = new MessageEmbed({
       color: '#E63F30',
