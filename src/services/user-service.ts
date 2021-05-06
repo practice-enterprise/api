@@ -12,7 +12,7 @@ import { ChannelCreationService } from './channel-creation-service';
 export class UserService {
   static async getForCourse(courseID: number, canvasInstanceID?: string): Promise<User | undefined> {
     let users: User[];
-    if (canvasInstanceID !== undefined) {
+    if (canvasInstanceID != null) {
       users = (await db.collection(Collections.users).where('courses', 'array-contains', courseID).where('canvas.instanceID', '==', canvasInstanceID).get()).docs.map((d) => d.data()) as User[];
     }
     else {
@@ -31,12 +31,12 @@ export class UserService {
 
   /**Updates all course IDs for a user.*/
   static async updateUserCourses(user: User): Promise<void> {
-    if (user.canvas.token === undefined || user.canvas.id === undefined) {
-      throw new Error(`${user.id} no canvas token`);
+    if (user.canvas.token === undefined || user.canvas.instanceID == null) {
+      throw new Error(`User ${user.id} no canvas token or canvas instanceID set.`);
     }
-    const canvas = (await db.collection(Collections.canvas).doc(user.canvas.id).get()).data();
-    if (canvas === undefined) {
-      throw new Error(`could not retrieve courses of ${user.id}`);
+    const canvas = (await db.collection(Collections.canvas).doc(user.canvas.instanceID).get()).data();
+    if (canvas == null) {
+      throw new Error(`Could not retrieve canvas instance of ${user.id}`);
     }
     const courses = await Axios.request<allCourses>({
       headers: {
@@ -61,7 +61,7 @@ export class UserService {
     user.courses = courses.map((c) => parseInt(c._id));
 
     await db.collection(Collections.users).doc(user.id).set(user)
-      .catch((err) => { throw new Error(`failed to set ${user.id} courses. error: ${err}`); });
+      .catch((err) => { throw new Error(`Failed to set ${user.id} courses. Error: ${err}`); });
   }
 
   static async updateRoles(user: User, validGuildConfigs: Guild[]): Promise<void> {
@@ -106,7 +106,7 @@ export class UserService {
   }
 
   static async doForUserGuilds(user: User): Promise<void> {
-    if (user.discord.token == undefined) {
+    if (user.discord.token == null) {
       throw new Error(`no discord token for: ${user.discord.id}`);
     }
 
