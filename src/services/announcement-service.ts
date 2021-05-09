@@ -8,6 +8,7 @@ import { Collections, db } from "./database";
 import { UserService } from "./user-service";
 import { Guild } from "../models/guild";
 import { User } from "../models/users";
+import { ChannelCreationService } from "./channel-creation-service";
 
 export class AnnouncementService {
   static async getAnnouncements(canvasInstanceID: string, courseID: number, user: User): Promise<CanvasAnnouncement[] | undefined> {
@@ -75,17 +76,22 @@ export class AnnouncementService {
           continue;
         }
         // All guilds related to this canvas instance
-        const guilds = (await db.collection(Collections.guilds).where('canvasInstanceID', '==', canvas.id) .get()).docs.map((d) => d.data()) as Guild[];
-  
+        const allGuilds = (await db.collection(Collections.guilds).where('canvasInstanceID', '==', canvas.id).get()).docs.map((d) => d.data()) as Guild[];
+        const guilds: Guild[] = [];
+        for (const guild of allGuilds) {
+          if (guild.modules['announcements']) {
+            guilds.push(guild);
+          }
+        }
         // Get all course IDs from all the different guilds
         const AllCourseIDs = guilds.map(g => Object.keys(g.courseChannels.channels).map(k => Number(k))).flat();
         // Remove dupes
         const courseIDs = Array.from(new Set(AllCourseIDs));
-        
-        if (canvas.lastAnnounce == null ) {
+
+        if (canvas.lastAnnounce == null) {
           canvas.lastAnnounce = {};
         }
-  
+
         for (const courseID of courseIDs) {
           const user = await UserService.getForCourse(courseID, canvas.id);
           // FIX?: The random user we took may not have a token. This shouldn't be the case since otherwise the user wouldn't have courses assinged in the first place.
@@ -93,29 +99,28 @@ export class AnnouncementService {
             console.error('No user was found for subject ', courseID);
             continue;
           }
-  
+
           const announcements = await this.getAnnouncements(canvas.id, courseID, user);
-  
+
           if (announcements === undefined) {
             throw new Error('Announcements undefined. Likely invalid or undefined token from users.');
           }
           if (announcements.length === 0) {
             continue;
           }
-  
+
           // Checking for new announcements
           const lastAnnounceID = canvas.lastAnnounce[courseID]
           for (const guild of guilds) {
             const channelID = guild.courseChannels.channels[courseID];
-  
+
             // No channel is set for a course.
-            if (channelID.length === 0 || channelID.length === undefined) {
+            if (channelID.length === 0 || channelID.length == undefined) {
               console.error(`No channelID was set for courseID ${courseID} in guild ${guild.id}`);
               continue;
             }
-  
             // Last announcement ID is undefined
-            if (canvas.lastAnnounce[courseID] === undefined) {
+            if (canvas.lastAnnounce[courseID] == undefined) {
               // No lastAnnounceID set. Posting last announcement and setting ID.
               const embed = await this.buildAnnouncementEmbed(announcements[0], courseID, user.discord.id);
               WebSocket?.sendForGuild(guild.id, 'announcement', {
@@ -124,19 +129,18 @@ export class AnnouncementService {
               });
               continue;
             }
-  
             const index = announcements.findIndex(a => a.id === lastAnnounceID);
-  
+
             /* Index == 0 -> Already last announcement
   
               FIX: index may be -1, this might for example happen when an announcement has been deleted.
               Another more unlikely example is that more than 10 announcements were posted in between the last interval.
             */
             // Posting new announcements
-            if(index !== 0 && index !== -1) {
+            if (index !== 0 && index !== -1) {
               for (let i = index - 1; i >= 0; i--) {
                 const embed = await this.buildAnnouncementEmbed(announcements[i], courseID, user.discord.id);
-  
+
                 // Send 1 of new announcement(s)
                 WebSocket?.sendForGuild(guild.id, 'announcement', {
                   channelID: channelID,

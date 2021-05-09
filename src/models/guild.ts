@@ -14,4 +14,5 @@ export interface Guild {
   notes: Record<string, string[]>
   //type(student), channel ID
   roles: Record<string, string>
+  modules: Record<string, boolean>
 }
