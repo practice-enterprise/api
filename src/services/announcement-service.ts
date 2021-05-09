@@ -8,7 +8,6 @@ import { Collections, db } from "./database";
 import { UserService } from "./user-service";
 import { Guild } from "../models/guild";
 import { User } from "../models/users";
-import { ChannelCreationService } from "./channel-creation-service";
 
 export class AnnouncementService {
   static async getAnnouncements(canvasInstanceID: string, courseID: number, user: User): Promise<CanvasAnnouncement[] | undefined> {
