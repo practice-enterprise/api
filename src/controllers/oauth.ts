@@ -44,7 +44,9 @@ export class OauthController {
           Logger.info('creating new user from discord loggin', info.user);
           user = await this.createUserFromDiscord(info.user, tokens);
         } else {
-          user = snap.docs[0] as unknown as User;
+          user = snap.docs[0].data() as User;
+          user.discord.token = tokens.refresh_token;
+          snap.docs[0].ref.set(user);
         }
 
         const secret = await CryptoUtil.getSecret();
@@ -55,6 +57,60 @@ export class OauthController {
               username: info.user.username,
               discriminator: info.user.discriminator
             }
+          },
+          secret,
+          { expiresIn: '1d' }
+        );
+
+        res.send({ jwt: token });
+      })
+      .post('/callback/canvas', async (req, res) => {
+        const tokens = await axios.request<CanvasTokenResponse>({
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          data: new URLSearchParams({
+            'client_id': Env.get('C_CLIENT_ID'),
+            'client_secret': Env.get('C_CLIENT_SECRET'),
+            'grant_type': 'authorization_code',
+            'code': req.query.code as string,
+            'redirect_uri': Env.get('C_REDIRECT_URI'),
+          }),
+          url: `${canvasEndpoint}/login/oauth2/token`,
+        }).then((res) => res.data);
+
+        
+        const auth = req.headers.authorization?.replace('Bearer ', '');
+        let token = jwt.decode(auth!);
+        if (!token) {
+          res.sendStatus(401);
+          return;
+        }
+        const userDoc = await db.collection(Collections.users).doc((token as any).id).get();
+        const user = userDoc.data() as User;
+        user.canvas = {
+          id: String(tokens.user.id),
+          instanceID: 'HDSLi9ojqdTMPbZJuvhN',
+          token: tokens.refresh_token
+        };
+        userDoc.ref.set(user);
+
+        console.log(user);
+        const discordTokens = await DiscordService.tokensFromRefresh(user.discord.token!);
+        console.log(discordTokens);
+        const info = await DiscordService.getAuthInfo(discordTokens.access_token);
+        console.log(info);
+
+        const secret = await CryptoUtil.getSecret();
+        token = jwt.sign(
+          {
+            id: user.id,
+            discord: {
+              username: info.user!.username,
+              discriminator: info.user!.discriminator
+            },
+            canvas: { username: tokens.user.name }
           },
           secret,
           { expiresIn: '1d' }
@@ -77,26 +133,6 @@ export class OauthController {
 
     await doc.set(user);
     return user;
-  }
-
-  static async getCanvasToken(code: string): Promise<CanvasTokenResponse> {
-    // https://discord.com/developers/docs/topics/oauth2#authorization-code-grant-access-token-exchange-example
-    return axios.request({
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      data: new URLSearchParams({
-        'client_id': Env.get('C_CLIENT_ID'),
-        'client_secret': Env.get('C_CLIENT_SECRET'),
-        'grant_type': 'authorization_code',
-        'code': code,
-        'redirect_uri': Env.get('C_REDIRECT_URI'),
-      }),
-      url: `${canvasEndpoint}/login/oauth2/token`,
-    })
-      .then((res) => res.data)
-      .catch((err) => console.error(err));
   }
 
   static async refreshCanvasToken(refreshToken: string): Promise<CanvasTokenResponse> {

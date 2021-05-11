@@ -6,7 +6,7 @@ export class NotesController {
     return Router({ caseSensitive: false })
       .get('/:id', async (req, res, next) => {
         const noteSnapshot = await db.collection(Collections.notes)
-          .where('id', '==', req.params.id).get()
+          .where('id', '==', req.params.id).get();
         if (noteSnapshot.empty) {
           res.sendStatus(404);
           next();
