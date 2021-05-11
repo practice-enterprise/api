@@ -13,6 +13,6 @@ export interface Reminder {
   target: ReminderTarget
 }
 
-export function isGuildTarget(target: ReminderTarget): target is ({ guild: string, channel: string, user: string}) {
-  return (target as {guild: string, channel: string, user: string }).guild != null;
+export function isGuildTarget(target: ReminderTarget): target is ({ guild: string, channel: string, user: string }) {
+  return (target as { guild: string, channel: string, user: string }).guild != null;
 }
