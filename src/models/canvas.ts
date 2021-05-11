@@ -2,7 +2,7 @@ export interface CanvasInstance {
   id: string,
   endpoint: string,
   /**CourseID key + last announcement ID*/
-  lastAnnounce: Record<string, number>,
+  lastAnnounce: Record<number, number>,
 }
 
 /** https://canvas.instructure.com/doc/api/courses.html */

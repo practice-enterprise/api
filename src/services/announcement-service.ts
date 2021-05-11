@@ -38,10 +38,10 @@ export class AnnouncementService {
     //TODO: handle refresh/ 401/403
   }
 
-  static async buildAnnouncementEmbed(announcement: CanvasAnnouncement, courseID: number, canvasInstanceID: string, discordUserID: string): Promise<MessageEmbed> {
+  static async buildAnnouncementEmbed(announcement: CanvasAnnouncement, courseID: number, discordUserID: string): Promise<MessageEmbed> {
     const ts = new TurndownService();
 
-    const courses = await CanvasController.getCourses(discordUserID, canvasInstanceID);
+    const courses = await CanvasController.getCourses(discordUserID);
     if (courses === undefined) {
       throw new Error('Courses not defined. Likely invalid or undefined token from users.');
     }
@@ -81,7 +81,7 @@ export class AnnouncementService {
         const AllCourseIDs = guilds.map(g => Object.keys(g.courseChannels.channels).map(k => Number(k))).flat();
         // Remove dupes
         const courseIDs = Array.from(new Set(AllCourseIDs));
-
+        
         if (canvas.lastAnnounce == null ) {
           canvas.lastAnnounce = {};
         }
@@ -117,13 +117,11 @@ export class AnnouncementService {
             // Last announcement ID is undefined
             if (canvas.lastAnnounce[courseID] === undefined) {
               // No lastAnnounceID set. Posting last announcement and setting ID.
-              const embed = await this.buildAnnouncementEmbed(announcements[0], courseID, canvas.id, user.discord.id);
-              const data = {
+              const embed = await this.buildAnnouncementEmbed(announcements[0], courseID, user.discord.id);
+              WebSocket?.sendForGuild(guild.id, 'announcement', {
                 channelID: channelID,
                 embed: embed
-              };
-              WebSocket?.sendForGuild(guild.id, 'announcement', data);
-  
+              });
               continue;
             }
   
@@ -137,14 +135,13 @@ export class AnnouncementService {
             // Posting new announcements
             if(index !== 0 && index !== -1) {
               for (let i = index - 1; i >= 0; i--) {
-                const embed = await this.buildAnnouncementEmbed(announcements[i], courseID, canvas.id, user.discord.id);
+                const embed = await this.buildAnnouncementEmbed(announcements[i], courseID, user.discord.id);
   
                 // Send 1 of new announcement(s)
-                const data = {
+                WebSocket?.sendForGuild(guild.id, 'announcement', {
                   channelID: channelID,
                   embed: embed
-                };
-                WebSocket?.sendForGuild(guild.id, 'announcement', data);
+                });
               }
             }
           }

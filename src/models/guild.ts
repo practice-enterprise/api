@@ -7,7 +7,7 @@ export interface Guild {
   courseChannels: {
     CategoryID: string,
     //Record<courseID, channelID), courseID should be number -> parseInt()
-    channels: Record<string, string>
+    channels: Record<number, string>
   }
   info: Command[],
   commands: Command[],
