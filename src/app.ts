@@ -11,8 +11,7 @@ import { Env } from './util/env';
 import { AnnouncementService } from './services/announcement-service';
 import { ReminderService } from './services/reminder-service';
 import { UserService } from './services/user-service';
-
-
+import { CryptoUtil } from './util/crypto';
 
 if (process.env.NODE_ENV == null || process.env.NODE_ENV === 'develepmont') {
   dotenv.config();
@@ -38,6 +37,8 @@ try {
 export let WebSocket: SocketManager | undefined = undefined;
 
 (async () => {
+  await CryptoUtil.validate();
+
   const app = applyRoutes(Express());
   const server = createServer(app);
   const io = new socketIO.Server(server);
