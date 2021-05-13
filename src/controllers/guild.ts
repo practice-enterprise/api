@@ -27,7 +27,13 @@ export class GuildController {
           .set(req.body)
           .then(() => res.sendStatus(204))
           .finally(() => next());
+      })
+      .put('/modules',(req, res, next) =>{
+        db.collection(Collections.guilds)
+          .doc(req.body.id)
+          .update({'modules': req.body.modules})
+          .then(() => res.sendStatus(204))
+          .finally(()=> next());
       });
-
   }
 }
