@@ -1,19 +1,20 @@
-import Axios from "axios";
-import { CanvasAnnouncement, CanvasInstance } from "../models/canvas";
+import Axios from 'axios';
+import { CanvasAnnouncement, CanvasInstance } from '../models/canvas';
 import TurndownService from 'turndown';
-import { CanvasController } from "../controllers/canvas";
-import { MessageEmbed } from "discord.js";
-import { WebSocket } from "../app";
-import { Collections, db } from "./database";
-import { UserService } from "./user-service";
-import { Guild } from "../models/guild";
-import { User } from "../models/users";
+import { CanvasController } from '../controllers/canvas';
+import { MessageEmbed } from 'discord.js';
+import { WebSocket } from '../app';
+import { Collections, db } from './database';
+import { UserService } from './user-service';
+import { Guild } from '../models/guild';
+import { User } from '../models/users';
+import { DateTime } from 'luxon';
 
 export class AnnouncementService {
   static async getAnnouncements(canvasInstanceID: string, courseID: number, user: User): Promise<CanvasAnnouncement[] | undefined> {
     if (user.canvas.token === undefined) {
       // There is no token
-      console.error('No token defined')
+      console.error('No token defined');
       return undefined;
     }
 
@@ -48,7 +49,7 @@ export class AnnouncementService {
     const course = courses.find(c => c.id === courseID);
 
     const postedTime = new Date(announcement.posted_at);
-    const postTimeString = postedTime.getHours() + ':' + (postedTime.getMinutes() < 10 ? '0' + postedTime.getMinutes() : postedTime.getMinutes()) + ' • ' + postedTime.getDate() + '/' + (postedTime.getMonth() + 1) + '/' + postedTime.getFullYear();
+    const postTimeString = DateTime.fromJSDate(postedTime).toFormat('hh:mm • dd/MM/yyyy');
 
     const embed = new MessageEmbed({
       color: '#E63F30',
@@ -67,8 +68,12 @@ export class AnnouncementService {
 
   // FIX: API checks before bot can receive events -> lastAnnounce is set to something that isn't posted
   // TODO: check rate limits. Currently 1 minute interval. We want this as low as is allowed.
-  static initAnnouncementJob(interval: number): NodeJS.Timeout {
+  static async initAnnouncementJob(interval: number): Promise<NodeJS.Timeout> {
     return setInterval(async () => {
+      if (WebSocket == null) {
+        throw Error('WebSocket is undefined (won\'t be able to send announcements), skipping announcement check.');
+      }
+
       const canvasInstances = (await db.collection(Collections.canvas).get()).docs.map((d) => d.data()) as CanvasInstance[];
       for (const canvas of canvasInstances) {
         if (canvas.id === undefined && canvas.endpoint === undefined && canvas === undefined) {
@@ -109,7 +114,7 @@ export class AnnouncementService {
           }
 
           // Checking for new announcements
-          const lastAnnounceID = canvas.lastAnnounce[courseID]
+          const lastAnnounceID = canvas.lastAnnounce[courseID];
           for (const guild of guilds) {
             const channelID = guild.courseChannels.channels[courseID];
 
@@ -122,7 +127,7 @@ export class AnnouncementService {
             if (canvas.lastAnnounce[courseID] == undefined) {
               // No lastAnnounceID set. Posting last announcement and setting ID.
               const embed = await this.buildAnnouncementEmbed(announcements[0], courseID, user.discord.id);
-              WebSocket?.sendForGuild(guild.id, 'announcement', {
+              WebSocket.sendForGuild(guild.id, 'announcement', {
                 channelID: channelID,
                 embed: embed
               });
@@ -141,7 +146,7 @@ export class AnnouncementService {
                 const embed = await this.buildAnnouncementEmbed(announcements[i], courseID, user.discord.id);
 
                 // Send 1 of new announcement(s)
-                WebSocket?.sendForGuild(guild.id, 'announcement', {
+                WebSocket.sendForGuild(guild.id, 'announcement', {
                   channelID: channelID,
                   embed: embed
                 });

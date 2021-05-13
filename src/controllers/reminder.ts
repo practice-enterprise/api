@@ -26,22 +26,22 @@ export class ReminderController {
       })
       .get('/timezone/:id', async (req, res, next) => {
         const users = await db.collection(Collections.users)
-          .where('discord.id', '==', req.params.id).get()
+          .where('discord.id', '==', req.params.id).get();
         if (users.empty) {
           res.sendStatus(404);
           next();
         }
-        res.send( users.docs[0].data().timeZone);
+        res.send(users.docs[0].data().timeZone);
         next();
       })
       .put('/timezone/:id', async (req, res, next) => {
         const users = await db.collection(Collections.users)
-          .where('discord.id', '==', req.params.id).get()
+          .where('discord.id', '==', req.params.id).get();
         if (users.empty) {
           res.sendStatus(404);
           next();
         }
-        db.collection(Collections.users).doc(users.docs[0].id).update({timeZone: req.body.tz});
+        db.collection(Collections.users).doc(users.docs[0].id).update({ timeZone: req.body.tz });
         res.sendStatus(204);
         next();
       });

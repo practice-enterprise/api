@@ -1,6 +1,6 @@
 import { CanvasController } from '../controllers/canvas';
 import { Guild } from '../models/guild';
-import { WebSocket } from "../app";
+import { WebSocket } from '../app';
 
 
 export class ChannelCreationService {
