@@ -80,13 +80,8 @@ export class AnnouncementService {
           continue;
         }
         // All guilds related to this canvas instance
-        const allGuilds = (await db.collection(Collections.guilds).where('canvasInstanceID', '==', canvas.id).get()).docs.map((d) => d.data()) as Guild[];
-        const guilds: Guild[] = [];
-        for (const guild of allGuilds) {
-          if (guild.modules['announcements']) {
-            guilds.push(guild);
-          }
-        }
+        const guilds = (await db.collection(Collections.guilds).where('canvasInstanceID', '==', canvas.id).get()).docs
+          .map(d => d.data()).filter(g => g.modules['announcements']) as Guild[];
         // Get all course IDs from all the different guilds
         const AllCourseIDs = guilds.map(g => Object.keys(g.courseChannels.channels).map(k => Number(k))).flat();
         // Remove dupes
