@@ -83,6 +83,9 @@ export class UserService {
     }
 
     for (const guild of validGuildConfigs) {
+      if (!guild.modules['roleSync']) {
+        continue;
+      }
       WebSocket?.sendForGuild(guild.id, 'updateRoles', {
         'guildID': guild.id,
         'userID': user.discord.id,
