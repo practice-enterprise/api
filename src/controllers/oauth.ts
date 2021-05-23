@@ -9,6 +9,7 @@ import { Env } from '../util/env';
 import { Logger } from '../util/logger';
 import jwt from 'jsonwebtoken';
 import { CryptoUtil } from '../util/crypto';
+import { CanvasInstance } from '../models/canvas';
 
 const canvasEndpoint = 'https://canvas.toasthub.xyz';
 
@@ -45,7 +46,7 @@ export class OauthController {
           user = await this.createUserFromDiscord(info.user, tokens);
         } else {
           user = snap.docs[0].data() as User;
-          user.discord.token = tokens.refresh_token;
+          user.discord.token = CryptoUtil.encrypt(tokens.refresh_token);
           snap.docs[0].ref.set(user);
         }
 
@@ -63,6 +64,9 @@ export class OauthController {
         );
 
         res.send({ jwt: token });
+      })
+      .post('/callback/canvas/manual', (req, res) => {
+        console.log(req.body);
       })
       .post('/callback/canvas', async (req, res) => {
         const tokens = await axios.request<CanvasTokenResponse>({
@@ -92,16 +96,13 @@ export class OauthController {
         user.canvas = {
           id: String(tokens.user.id),
           instanceID: 'HDSLi9ojqdTMPbZJuvhN',
-          token: tokens.refresh_token
+          tokenType: 'refresh',
+          token: CryptoUtil.encrypt(tokens.refresh_token!)
         };
         userDoc.ref.set(user);
 
-        console.log(user);
         const discordTokens = await DiscordService.tokensFromRefresh(user.discord.token!);
-        console.log(discordTokens);
         const info = await DiscordService.getAuthInfo(discordTokens.access_token);
-        console.log(info);
-
         const secret = await CryptoUtil.getSecret();
         token = jwt.sign(
           {
@@ -117,6 +118,21 @@ export class OauthController {
         );
 
         res.send({ jwt: token });
+      })
+      .get('/instances/:instanceid', async (req, res) => {
+        const doc = await db.collection(Collections.canvas).doc(req.params.instanceid).get();
+        if (!doc.exists) {
+          res.sendStatus(404);
+          return;
+        }
+
+        const data = doc.data() as CanvasInstance;
+        res.send({
+          endpoint: data.endpoint,
+          clientId: data.oauth?.clientId,
+          redirectUri: data.oauth?.redirectUri,
+          manual: !data.oauth
+        });
       });
   }
 
@@ -125,7 +141,7 @@ export class OauthController {
     const user: User = {
       discord: {
         id: discordUser.id,
-        token: tokens.refresh_token
+        token: CryptoUtil.encrypt(tokens.refresh_token)
       },
       canvas: {},
       id: doc.id
@@ -133,24 +149,5 @@ export class OauthController {
 
     await doc.set(user);
     return user;
-  }
-
-  static async refreshCanvasToken(refreshToken: string): Promise<CanvasTokenResponse> {
-    return axios.request({
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      data: new URLSearchParams({
-        'grant_type': 'refresh_token',
-        'client_id': Env.get('C_CLIENT_ID'),
-        'client_secret': Env.get('C_CLIENT_SECRET'),
-        'redirect_uri': Env.get('C_REDIRECT_URI'),
-        'refresh_token': refreshToken,
-      }),
-      url: `${canvasEndpoint}/login/oauth2/token`,
-    })
-      .then((res) => res.data)
-      .catch((err) => console.error(err));
   }
 }

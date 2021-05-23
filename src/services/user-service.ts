@@ -115,7 +115,8 @@ export class UserService {
     }
 
     const configs = (await db.collection(Collections.guilds).get()).docs.map((d) => d.data()) as Guild[];
-    const guilds = await DiscordService.getGuilds(user.discord.token);
+    const tokens = await DiscordService.tokensFromRefresh(user.discord.token);
+    const guilds = await DiscordService.getGuilds(tokens.access_token);
     if (!guilds) {
       throw new Error(`could not get guilds for user: ${user.discord.id}`);
     }
