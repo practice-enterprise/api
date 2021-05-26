@@ -54,7 +54,8 @@ export class CanvasController {
             Authorization: `Bearer ${user.canvas.token}`
           },
           params: {
-            include: ['items, content_details']
+            include: ['items, content_details'],
+            per_page: 50
           },
 
           method: 'GET',
@@ -91,7 +92,8 @@ export class CanvasController {
             Authorization: `Bearer ${user.canvas.token}`
           },
           params: {
-            include: ['items', 'content_details']
+            include: ['items', 'content_details'],
+            per_page: 50
           },
 
           method: 'GET',
@@ -162,7 +164,7 @@ export class CanvasController {
       },
       params: {
         type: 'assignment',
-        per_page: 100,
+        per_page: 50,
         end_date: `${DateTime.fromMillis(Date.now() + warningDays * 24 * 60 * 60 * 1000).toFormat('yyyy-MM-dd')}`,
         'context_codes': user.courses.map(c => 'course_' + c)
       },
