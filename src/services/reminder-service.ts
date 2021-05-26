@@ -11,7 +11,8 @@ const defaultZone = 'Europe/Brussels';
 export class ReminderService {
   static async initSendReminder(interval: number): Promise<NodeJS.Timeout> {
     return setInterval(async () => {
-      const reminders: Reminder[] = await db.collection(Collections.reminders).get().then((snapshot) => (snapshot.docs.map((d) => { const data = d.data(); data.id = d.id; return data as Reminder; })));
+      const reminders: Reminder[] = await db.collection(Collections.reminders).get()
+        .then((snapshot) => (snapshot.docs.map((d) => { const data = d.data(); data.id = d.id; return data as Reminder; })));
       for (const reminder of reminders) {
         const users = await db.collection(Collections.users)
           .where('discord.id', '==', reminder.target.user).get();
@@ -19,8 +20,8 @@ export class ReminderService {
           continue;
         }
 
-        const time = DateTime.fromISO(reminder.date, {zone: 'utc'})
-          .setZone(users.docs[0].data().timeZone || defaultZone, {keepLocalTime: true});
+        const time = DateTime.fromISO(reminder.date, { zone: 'utc' })
+          .setZone(users.docs[0].data().timeZone || defaultZone, { keepLocalTime: true });
         if (time.diffNow().valueOf() < 0) {
           if (isGuildTarget(reminder.target)) {
             WebSocket?.sendForGuild(reminder.target.guild, 'reminderGuild', reminder);
@@ -34,13 +35,16 @@ export class ReminderService {
 
   static async sendAssignment(user: User, warningDays: number): Promise<void> {
     const assignments = await CanvasController.getCalenderAssignments(user, warningDays);
+    if (assignments == undefined) {
+      throw new Error(`could not assignments for ${user.discord.id}`);
+    }
     const ts = new TurndownService();
-    const i = assignments.findIndex((a) => a.id == user.canvas.lastAssignment) + 1;
-    if (i >= assignments.length) {
+    const index = assignments.findIndex((a) => a.id == user.canvas.lastAssignment) + 1;
+    if (index >= assignments.length) {
       console.log(`assignments for ${user.discord.id} is up to date`);
       return;
     }
-    const assignment = assignments[i];
+    const assignment = assignments[index];
 
     if (assignment.lock_info == null) {
       WebSocket?.sendRoot('assignmentDM', {
@@ -57,5 +61,6 @@ export class ReminderService {
       db.collection(Collections.users).doc(user.id)
         .update({ 'canvas.lastAssignment': assignment.id });
     }
+    return;
   }
 }

@@ -11,7 +11,7 @@ export interface Guild {
   }
   info: Command[],
   commands: Command[],
-  notes: Record<string, string[]>
+  notes: Record<string, string[]>,
   //type(student), channel ID
   roles: Record<string, string>
 }

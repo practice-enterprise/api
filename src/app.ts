@@ -49,7 +49,8 @@ export let WebSocket: SocketManager | undefined = undefined;
   });
 
   ReminderService.initSendReminder(60000);
-  AnnouncementService.initAnnouncementJob(60000);
+  AnnouncementService.initAnnouncementJob(60000)
+    .catch((err) => Logger.error(err));
   //role update + assignment reminders
   UserService.initForUsers(60000);
 })();
