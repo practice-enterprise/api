@@ -25,7 +25,7 @@ export function applyRoutes(express: Express): Express {
   express.use('/guilds', GuildController.router());
   express.use('/notes', NotesController.router());
   express.use('/reminders', ReminderController.router());
-  express.use('/oauth2', OauthController.router());
+  express.use('/oauth', OauthController.router());
 
   express.use((req: Request, res: Response, next: NextFunction) => {
     if (!res.writableFinished) {

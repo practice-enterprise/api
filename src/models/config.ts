@@ -15,5 +15,8 @@ export interface Config {
         }
       ]
     }
+  },
+  jwt: {
+    secret: string,
   }
 }

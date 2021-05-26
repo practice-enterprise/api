@@ -2,9 +2,6 @@ const keys = [
   'D_CLIENT_ID',
   'D_CLIENT_SECRET',
   'D_REDIRECT_URI',
-  'C_CLIENT_ID',
-  'C_CLIENT_SECRET',
-  'C_REDIRECT_URI'
 ];
 
 export class Env {

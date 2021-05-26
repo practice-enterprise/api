@@ -1,5 +1,5 @@
 /**https://discord.com/developers/docs/topics/oauth2#authorization-code-grant-access-token-response */
-export interface DiscordToken {
+export interface DiscordTokenResponse {
   access_token: string,
   token_type: string,
   expires_in: number,
@@ -8,7 +8,7 @@ export interface DiscordToken {
 }
 
 /**https://canvas.instructure.com/doc/api/file.oauth_endpoints.html */
-export interface CanvasToken {
+export interface CanvasTokenResponse {
   access_token: string,
   token_type: string,
   user: { id: number | string, name: string, global_id: string, effective_locale: string },

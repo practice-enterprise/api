@@ -9,7 +9,8 @@ import { UserService } from './user-service';
 import { Guild } from '../models/guild';
 import { User } from '../models/users';
 import { DateTime } from 'luxon';
-
+import { CryptoUtil } from '../util/crypto';
+import { CanvasService } from './canvas-service';
 export class AnnouncementService {
   static async getAnnouncements(canvasInstanceID: string, courseID: number, user: User): Promise<CanvasAnnouncement[] | undefined> {
     if (user.canvas.token === undefined) {
@@ -23,9 +24,13 @@ export class AnnouncementService {
       return undefined;
     }
 
+    let token = CryptoUtil.decrypt(user.canvas.token);
+    if (user.canvas.tokenType == 'refresh') {
+      token = await (await CanvasService.refreshCanvasToken(token, canvas.data())).access_token;
+    }
     return Axios.request<CanvasAnnouncement[]>({
       headers: {
-        Authorization: `Bearer ${user.canvas.token}`
+        Authorization: `Bearer ${token}`
       },
       params: {
         only_announcements: 'true'

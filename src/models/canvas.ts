@@ -3,6 +3,11 @@ export interface CanvasInstance {
   endpoint: string,
   /**CourseID key + last announcement ID*/
   lastAnnounce: Record<number, number>,
+  oauth?: {
+    redirectUri: string,
+    clientId: string,
+    clientSecret: string,
+  }
 }
 
 /** https://canvas.instructure.com/doc/api/courses.html */
