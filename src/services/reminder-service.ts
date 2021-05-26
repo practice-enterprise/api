@@ -78,7 +78,7 @@ export class ReminderService {
       },
       description: ts.turndown(assignment.description),
       footer: {
-        text: `Due to: ${dueTimeString}`
+        text: `Due by ${dueTimeString}`
       }
     });
   }

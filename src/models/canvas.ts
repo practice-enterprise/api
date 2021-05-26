@@ -180,7 +180,7 @@ export interface CalenderAssignment {
   title: string,
   description: string,
   html_url: string,
-  lock_info: object,
+  lock_info: any,
   assignment: {
     due_at: string
   },
