@@ -99,11 +99,14 @@ export class UserService {
     return setInterval(async () => {
       const users = (await db.collection(Collections.users).get()).docs.map(d => d.data()) as User[];
       for (const user of users) {
-        ReminderService.sendAssignment(user, 2)
-          .catch(err => console.error(err));
-
-        this.doForUserGuilds(user)
-          .catch(err => console.error(err));
+        if (user.courses && user.courses.length > 0) {
+          ReminderService.sendAssignment(user, 2)
+            .catch(err => console.error(err));
+        }
+        if (user.discord.token) {
+          this.doForUserGuilds(user)
+            .catch(err => console.error(err));
+        }
       }
     }, interval);
   }
