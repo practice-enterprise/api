@@ -4,6 +4,7 @@ import { CalenderAssignment, CanvasCourse, CanvasModule, CanvasModuleItem } from
 import { Collections, db } from '../services/database';
 import { User } from '../models/users';
 import { DateTime } from 'luxon';
+import { CryptoUtil } from '../util/crypto';
 
 export class CanvasController {
   static router(): Router {
@@ -51,7 +52,7 @@ export class CanvasController {
 
         Axios.request<CanvasModule[]>({
           headers: {
-            Authorization: `Bearer ${user.canvas.token}`
+            Authorization: `Bearer ${CryptoUtil.decrypt(user.canvas.token)}`
           },
           params: {
             include: ['items, content_details'],
@@ -61,7 +62,9 @@ export class CanvasController {
           method: 'GET',
           baseURL: canvas.endpoint,
           url: `/api/v1/courses/${req.params.courseID}/modules`
-        }).then((d) => res.send(d.data))
+        }).then((d) => {
+          res.send(d.data);
+        })
           .catch((err) => {
             console.log(err);
             res.sendStatus(401);
@@ -89,7 +92,7 @@ export class CanvasController {
 
         return Axios.request<CanvasModuleItem[]>({
           headers: {
-            Authorization: `Bearer ${user.canvas.token}`
+            Authorization: `Bearer ${CryptoUtil.decrypt(user.canvas.token)}`
           },
           params: {
             include: ['items', 'content_details'],
@@ -124,14 +127,17 @@ export class CanvasController {
 
     const courses = await Axios.request<CanvasCourse[]>({
       headers: {
-        Authorization: `Bearer ${user.canvas.token}`
+        Authorization: `Bearer ${CryptoUtil.decrypt(user.canvas.token)}`
       },
       params: { per_page: '50' },
       method: 'GET',
       baseURL: canvas.endpoint,
       url: '/api/v1/courses'
     }).then((res) => res.data)
-      .catch(() => undefined);
+      .catch((err) => {
+        console.error(err);
+        return undefined;
+      });
     //TODO: handle refresh tokens etc
 
     if (courses !== undefined) {
@@ -159,7 +165,7 @@ export class CanvasController {
 
     return Axios.request<CalenderAssignment[]>({
       headers: {
-        Authorization: `Bearer ${user.canvas.token}`,
+        Authorization: `Bearer ${CryptoUtil.decrypt(user.canvas.token!)}`,
         Accept: 'application/json'
       },
       params: {
