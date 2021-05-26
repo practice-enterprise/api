@@ -1,3 +1,3 @@
 const crypto = require('crypto');
 
-console.log(crypto.randomBytes(512).toString('base64'));
+console.log(crypto.randomBytes(32).toString('base64'));

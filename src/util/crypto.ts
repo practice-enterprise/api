@@ -32,13 +32,14 @@ export class CryptoUtil {
     const encrypted = Buffer.concat([cipher.update(content), cipher.final()]);
     return {
       iv: iv.toString('hex'),
-      content: encrypted.toString('hex')
+      content: encrypted?.toString('hex') || ''
     };
   }
 
   static decrypt(hash: UserHash): string {
     const decipher = crypto.createDecipheriv(this.algorithm, this.key(), Buffer.from(hash.iv, 'hex'));
     const decrpyted = Buffer.concat([decipher.update(Buffer.from(hash.content, 'hex')), decipher.final()]);
+    console.log(decrpyted.toString());
     return decrpyted.toString();
   }
 }
