@@ -67,7 +67,7 @@ export class ReminderService {
     const ts = new TurndownService();
 
     const dueTime = new Date(assignment.assignment.due_at);
-    const dueTimeString = DateTime.fromJSDate(dueTime).toFormat('hh:mm • dd/MM/yyyy');
+    const dueTimeString = DateTime.fromJSDate(dueTime).toFormat('HH:mm • dd/MM/yyyy');
 
     return new MessageEmbed({
       color: '#E63F30',

@@ -49,7 +49,7 @@ export class AnnouncementService {
     const course = courses.find(c => c.id === courseID);
 
     const postedTime = new Date(announcement.posted_at);
-    const postTimeString = DateTime.fromJSDate(postedTime).toFormat('hh:mm • dd/MM/yyyy');
+    const postTimeString = DateTime.fromJSDate(postedTime).toFormat('HH:mm • dd/MM/yyyy');
 
     const embed = new MessageEmbed({
       color: '#E63F30',
