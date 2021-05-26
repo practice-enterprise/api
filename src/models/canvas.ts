@@ -184,7 +184,10 @@ export interface CalenderAssignment {
   id: string,
   title: string,
   description: string,
-  end_at: string,
   html_url: string,
-  lock_info: any
+  lock_info: any,
+  assignment: {
+    due_at: string
+  },
+  context_name: string
 }

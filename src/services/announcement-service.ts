@@ -49,7 +49,7 @@ export class AnnouncementService {
     const course = courses.find(c => c.id === courseID);
 
     const postedTime = new Date(announcement.posted_at);
-    const postTimeString = DateTime.fromJSDate(postedTime).toFormat('hh:mm • dd/MM/yyyy');
+    const postTimeString = DateTime.fromJSDate(postedTime).toFormat('HH:mm • dd/MM/yyyy');
 
     const embed = new MessageEmbed({
       color: '#E63F30',
@@ -80,8 +80,8 @@ export class AnnouncementService {
           continue;
         }
         // All guilds related to this canvas instance
-        const guilds = (await db.collection(Collections.guilds).where('canvasInstanceID', '==', canvas.id).get()).docs.map((d) => d.data()) as Guild[];
-
+        const guilds = (await db.collection(Collections.guilds).where('canvasInstanceID', '==', canvas.id).get()).docs
+          .map(d => d.data()).filter(g => g.modules['announcements']) as Guild[];
         // Get all course IDs from all the different guilds
         const AllCourseIDs = guilds.map(g => Object.keys(g.courseChannels.channels).map(k => Number(k))).flat();
         // Remove dupes
@@ -114,13 +114,12 @@ export class AnnouncementService {
             const channelID = guild.courseChannels.channels[courseID];
 
             // No channel is set for a course.
-            if (channelID.length === 0 || channelID.length === undefined) {
+            if (channelID.length === 0 || channelID.length == undefined) {
               console.error(`No channelID was set for courseID ${courseID} in guild ${guild.id}`);
               continue;
             }
-
             // Last announcement ID is undefined
-            if (canvas.lastAnnounce[courseID] === undefined) {
+            if (canvas.lastAnnounce[courseID] == undefined) {
               // No lastAnnounceID set. Posting last announcement and setting ID.
               const embed = await this.buildAnnouncementEmbed(announcements[0], courseID, user.discord.id);
               WebSocket.sendForGuild(guild.id, 'announcement', {
@@ -129,7 +128,6 @@ export class AnnouncementService {
               });
               continue;
             }
-
             const index = announcements.findIndex(a => a.id === lastAnnounceID);
 
             /* Index == 0 -> Already last announcement

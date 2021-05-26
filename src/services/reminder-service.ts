@@ -5,6 +5,8 @@ import { User } from '../models/users';
 import { CanvasController } from '../controllers/canvas';
 import TurndownService from 'turndown';
 import { DateTime } from 'luxon';
+import { CalenderAssignment } from '../models/canvas';
+import { MessageEmbed } from 'discord.js';
 
 const defaultZone = 'Europe/Brussels';
 
@@ -51,16 +53,33 @@ export class ReminderService {
         id: user.id,
         assignmentID: assignment.id,
         userDiscordID: user.discord.id,
-        message: {//messageEmbedOptions
-          title: assignment.title,
-          description: ts.turndown(assignment.description || ''),
-          url: assignment.html_url
-        }
+        message: await this.buildAssignmentEmbed(assignment)
       });
+
     } else {
       db.collection(Collections.users).doc(user.id)
         .update({ 'canvas.lastAssignment': assignment.id });
     }
     return;
+  }
+
+  static async buildAssignmentEmbed(assignment: CalenderAssignment): Promise<MessageEmbed> {
+    const ts = new TurndownService();
+
+    const dueTime = new Date(assignment.assignment.due_at);
+    const dueTimeString = DateTime.fromJSDate(dueTime).toFormat('HH:mm • dd/MM/yyyy');
+
+    return new MessageEmbed({
+      color: '#E63F30',
+      title: assignment.title,
+      url: assignment.html_url,
+      author: {
+        name: assignment.context_name
+      },
+      description: ts.turndown(assignment.description),
+      footer: {
+        text: `Due by ${dueTimeString}`
+      }
+    });
   }
 }
