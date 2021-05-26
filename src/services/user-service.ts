@@ -83,7 +83,7 @@ export class UserService {
     }
 
     for (const guild of validGuildConfigs) {
-      if (!guild.modules['roleSync']) {
+      if (guild.modules['roleSync'] === false) {
         continue;
       }
       WebSocket?.sendForGuild(guild.id, 'updateRoles', {
