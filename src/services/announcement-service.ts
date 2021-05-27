@@ -119,7 +119,7 @@ export class AnnouncementService {
             const channelID = guild.courseChannels.channels[courseID];
 
             // No channel is set for a course.
-            if (channelID.length === 0 || channelID.length == undefined) {
+            if (channelID == undefined || channelID.length === 0 || channelID.length == undefined) {
               console.error(`No channelID was set for courseID ${courseID} in guild ${guild.id}`);
               continue;
             }
