@@ -48,9 +48,9 @@ export let WebSocket: SocketManager | undefined = undefined;
     Logger.info(`listening on localhost:${process.env.PORT || 3000}`);
   });
 
-  ReminderService.initSendReminder(60000);
-  AnnouncementService.initAnnouncementJob(60000)
+  ReminderService.initSendReminder(240000);
+  AnnouncementService.initAnnouncementJob(240000)
     .catch((err) => Logger.error(err));
   //role update + assignment reminders
-  UserService.initForUsers(60000);
+  UserService.initForUsers(240000);
 })();

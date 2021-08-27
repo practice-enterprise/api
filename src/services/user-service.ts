@@ -133,6 +133,14 @@ export class UserService {
     }
     return;
   }
+
+  static async getUser(discordID: string): Promise<User> {
+    const snap = (await db.collection(Collections.users).where('discord.id', '==', discordID).get());
+    if (snap.empty) {
+      throw new Error(`no user with id ${discordID}`);
+    }
+    return snap.docs[0].data() as User;
+  }
 }
 
 
