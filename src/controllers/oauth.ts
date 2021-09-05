@@ -93,9 +93,12 @@ export class OauthController {
           tokenType: 'access',
           token: CryptoUtil.encrypt(accessToken)
         };
+
+        // refresh and update discord.refresh_token
+        const discordTokens = await DiscordService.tokensFromRefresh(user.discord.token!).catch(console.error)  as DiscordTokenResponse;
+        user.discord.token = CryptoUtil.encrypt(discordTokens.refresh_token);
         userDoc.ref.set(user);
 
-        const discordTokens = await DiscordService.tokensFromRefresh(user.discord.token!).catch(console.error)  as DiscordTokenResponse;
         const info = await DiscordService.getAuthInfo(discordTokens.access_token);
         const secret = await CryptoUtil.getSecret();
         token = jwt.sign(

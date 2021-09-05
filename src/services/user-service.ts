@@ -8,6 +8,7 @@ import { CanvasController } from '../controllers/canvas';
 import { WebSocket } from '../app';
 import { ReminderService } from './reminder-service';
 import { ChannelCreationService } from './channel-creation-service';
+import { CryptoUtil } from '../util/crypto';
 
 export class UserService {
   static async getForCourse(courseID: number, canvasInstanceID?: string): Promise<User | undefined> {
@@ -119,6 +120,13 @@ export class UserService {
 
     const configs = (await db.collection(Collections.guilds).get()).docs.map((d) => d.data()) as Guild[];
     const tokens = await DiscordService.tokensFromRefresh(user.discord.token);
+    // TODO: Error handling (user should exist but you never know)
+    // NOTE: Checking on id not discord.id
+    const snap = await db.collection(Collections.users).where('id', '==', user.id).get();
+    let userDoc: User = snap.docs[0].data() as User;
+    userDoc.discord.token = CryptoUtil.encrypt(tokens.refresh_token);
+    snap.docs[0].ref.set(userDoc);
+
     const guilds = await DiscordService.getGuilds(tokens.access_token);
     if (!guilds) {
       throw new Error(`could not get guilds for user: ${user.discord.id}`);
