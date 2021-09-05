@@ -12,7 +12,7 @@ create `.env` file in root with content for database
 ```
 D_CLIENT_ID="<Bot Id>"
 D_CLIENT_SECRET="<OAuth bot secret>"
-D_REDIRECT_URI="http://localhost:3000/oauth2/discord/callback"
+D_REDIRECT_URI="http://localhost:8080/oauth2/discord"
 
 GOOGLE_APPLICATION_CREDENTIALS="./service.account.json"
 ```
