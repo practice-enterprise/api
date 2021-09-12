@@ -194,8 +194,10 @@ export class OauthController {
         id: discordUser.id,
         token: CryptoUtil.encrypt(tokens.refresh_token)
       },
-      canvas: {},
-      id: doc.id
+      canvas: {
+      },
+      id: doc.id,
+      timeZone: 'Europe/Brussels'
     };
 
     await doc.set(user);
