@@ -4,12 +4,13 @@ import { DiscordTokenResponse as DiscordTokens } from '../models/oauth';
 import { UserHash } from '../models/users';
 import { CryptoUtil } from '../util/crypto';
 import { Env } from '../util/env';
+import { Collections, db } from './database';
 
 export class DiscordService {
   static async getGuilds(token: string): Promise<DiscordPartialGuild[]> {
     return await axios.request<DiscordPartialGuild[]>({
       headers: {
-        Authorization: token
+        Authorization: `Bearer ${token}`
       },
       method: 'GET',
       baseURL: 'https://discord.com/api/v8',
@@ -29,8 +30,8 @@ export class DiscordService {
     }).then((r) => r.data);
   }
 
-  static async tokensFromRefresh(hash: UserHash): Promise<DiscordTokens> {
-    return axios.request<DiscordTokens>({
+  static async tokensFromRefresh(hash: UserHash, userId: string): Promise<DiscordTokens> {
+    const tokens = await axios.request<DiscordTokens>({
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -45,5 +46,8 @@ export class DiscordService {
       }),
       url: 'https://discord.com/api/oauth2/token',
     }).then((res) => res.data);
+    const hashed = CryptoUtil.encrypt(tokens.refresh_token);
+    db.collection(Collections.users).doc(userId).update({'discord.token.content': hashed.content, 'discord.token.iv':hashed.iv});
+    return tokens;
   }
 }
