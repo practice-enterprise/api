@@ -10,10 +10,22 @@ import { ReminderService } from './reminder-service';
 import { ChannelCreationService } from './channel-creation-service';
 
 export class UserService {
+  static async clearCanvasToken(user: User): Promise<void> {
+    user.canvas.token = undefined;
+
+    await db.collection(Collections.users).doc(user.id).set(user)
+      //.then actually tell the user it has to be reset with oauth
+      .catch((err) => { throw new Error(`Failed to clear user ${user.id}'s canvas token. Error: ${err}`); });
+  }
+
   static async getForCourse(courseID: number, canvasInstanceID?: string): Promise<User | undefined> {
     let users: User[];
     if (canvasInstanceID != null) {
-      users = (await db.collection(Collections.users).where('courses', 'array-contains', courseID).where('canvas.instanceID', '==', canvasInstanceID).get()).docs.map((d) => d.data()) as User[];
+      users = (await db.collection(Collections.users)
+        .where('courses', 'array-contains', courseID)
+        .where('canvas.instanceID', '==', canvasInstanceID)
+        .where('canvas.token', '!=', null)
+        .get()).docs.map((d) => d.data()) as User[];
     }
     else {
       users = (await db.collection(Collections.users).where('courses', 'array-contains', courseID).get()).docs.map((d) => d.data()) as User[];

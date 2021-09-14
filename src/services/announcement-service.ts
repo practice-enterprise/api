@@ -28,6 +28,7 @@ export class AnnouncementService {
     if (user.canvas.tokenType == 'refresh') {
       token = await (await CanvasService.refreshCanvasToken(token, canvas.data())).access_token;
     }
+
     return Axios.request<CanvasAnnouncement[]>({
       headers: {
         Authorization: `Bearer ${token}`
@@ -40,7 +41,9 @@ export class AnnouncementService {
       baseURL: canvas.endpoint,
       url: `/api/v1/courses/${courseID}/discussion_topics`
     }).then((d) => d.data)
-      .catch(() => undefined);
+      .catch(() => {
+        UserService.clearCanvasToken(user);
+        return undefined;});
     //TODO: handle refresh/ 401/403
   }
 
@@ -100,7 +103,7 @@ export class AnnouncementService {
           const user = await UserService.getForCourse(courseID, canvas.id);
           // FIX?: The random user we took may not have a token. This shouldn't be the case since otherwise the user wouldn't have courses assinged in the first place.
           if (user === undefined) {
-            console.error('No user was found for subject ', courseID);
+            console.error('No user was found for subject or potentially none had tokens.', courseID);
             continue;
           }
 
