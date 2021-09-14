@@ -11,7 +11,6 @@ export class ConfigController {
       })
 
       .get('/defaultInstance',(req, res, next)=>{
-        console.log('gets');
         this.getGeneralConfig().then((i)=> res.send(i.canvas.defaultInstanceId));
       });
   }
