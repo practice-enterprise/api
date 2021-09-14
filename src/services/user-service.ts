@@ -105,14 +105,14 @@ export class UserService {
         }
 
         if (user.discord.token) {
-          this.doForUserGuilds(user)
+          this.updateUserRolesChannels(user)
             .catch(err => console.error(err));
         }
       }
     }, interval);
   }
 
-  static async doForUserGuilds(user: User): Promise<void> {
+  static async updateUserRolesChannels(user: User): Promise<void> {
     if (user.discord.token == null) {
       throw new Error(`no discord token for: ${user.discord.id}`);
     }
