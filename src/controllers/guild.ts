@@ -1,6 +1,9 @@
 import { Router } from 'express';
+
+import { Guild } from '../models/guild';
 import { ChannelCreationService } from '../services/channel-creation-service';
 import { Collections, db } from '../services/database';
+import { ConfigController } from './config';
 
 export class GuildController {
   static router(): Router {
@@ -21,11 +24,22 @@ export class GuildController {
           .then(() => res.sendStatus(204))
           .finally(() => next());
       })
-      .put('/create', (req, res, next) => {
+      .put('/create', async (req, res, next) => {
+        const body : Guild = req.body;
+        if(body.canvasInstanceID.length < 5)
+        {
+          body.canvasInstanceID = (await ConfigController.getGeneralConfig()).canvas.defaultInstanceId;
+        }
         db.collection(Collections.guilds)
           .doc(req.body.id)
-          .set(req.body)
+          .set(body)
           .then(() => res.sendStatus(204))
+          .finally(() => next());
+      })
+      .delete('/delete', (req, res, next) =>{
+        db.collection(Collections.guilds).doc(req.body.guildId).delete()
+          .then(() => res.sendStatus(200))
+          .catch(() => res.sendStatus(404))
           .finally(() => next());
       })
       .put('/modules',(req, res, next) =>{
@@ -35,5 +49,6 @@ export class GuildController {
           .then(() => res.sendStatus(204))
           .finally(()=> next());
       });
+      
   }
 }

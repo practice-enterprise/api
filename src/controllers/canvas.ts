@@ -5,6 +5,7 @@ import { Collections, db } from '../services/database';
 import { User } from '../models/users';
 import { DateTime } from 'luxon';
 import { CryptoUtil } from '../util/crypto';
+import { UserService } from '../services/user-service';
 
 export class CanvasController {
   static router(): Router {
@@ -26,6 +27,14 @@ export class CanvasController {
       .get('/:discordID/courses', async (req, res, next) => {
         this.getCourses(req.params.discordID)
           .then((courses) => res.send(courses))
+          .catch(() => res.sendStatus(404))
+          .finally(() => next());
+      })
+
+      //gets instance id for a user
+      .get('/:discordID/instanceId', async (req, res, next) => {
+        UserService.getUser(req.params.discordID)
+          .then((user) => res.send(user.canvas.instanceID))
           .catch(() => res.sendStatus(404))
           .finally(() => next());
       })
