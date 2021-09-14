@@ -36,6 +36,12 @@ export class GuildController {
           .then(() => res.sendStatus(204))
           .finally(() => next());
       })
+      .delete('/delete', (req, res, next) =>{
+        db.collection(Collections.guilds).doc(req.body.guildId).delete()
+          .then(() => res.sendStatus(200))
+          .catch(() => res.sendStatus(404))
+          .finally(() => next());
+      })
       .put('/modules',(req, res, next) =>{
         db.collection(Collections.guilds)
           .doc(req.body.id)
@@ -43,5 +49,6 @@ export class GuildController {
           .then(() => res.sendStatus(204))
           .finally(()=> next());
       });
+      
   }
 }
