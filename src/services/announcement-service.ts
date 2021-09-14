@@ -101,7 +101,6 @@ export class AnnouncementService {
 
         for (const courseID of courseIDs) {
           const user = await UserService.getForCourse(courseID, canvas.id);
-          // FIX?: The random user we took may not have a token. This shouldn't be the case since otherwise the user wouldn't have courses assinged in the first place.
           if (user === undefined) {
             console.error('No user was found for subject or potentially none had tokens.', courseID);
             continue;
@@ -109,9 +108,13 @@ export class AnnouncementService {
 
           const announcements = await this.getAnnouncements(canvas.id, courseID, user);
 
+          // Announcements undefined -> Likely invalid or undefined token from users.
           if (announcements === undefined) {
-            throw new Error('Announcements undefined. Likely invalid or undefined token from users.');
+            continue; // BAD! This ends up doubling the interval for this course, potentially more if the announcements keep being undefined
+            // A fix would be to try again but this has the chance of an infinite loop etc...
+            // FIX IT!
           }
+
           if (announcements.length === 0) {
             continue;
           }
