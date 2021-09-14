@@ -10,6 +10,7 @@ import { Logger } from '../util/logger';
 import jwt from 'jsonwebtoken';
 import { CryptoUtil } from '../util/crypto';
 import { CanvasInstance } from '../models/canvas';
+import { ConfigController } from './config';
 
 export class OauthController {
   static router(): Router {
@@ -89,7 +90,7 @@ export class OauthController {
 
         user.canvas = {
           id: String(convasUser.id),
-          instanceID: 'DLV3kVezrRO88588uA9H',
+          instanceID: (await ConfigController.getGeneralConfig()).canvas.defaultInstanceId,
           tokenType: 'access',
           token: CryptoUtil.encrypt(accessToken)
         };
@@ -146,7 +147,7 @@ export class OauthController {
         const user = userDoc.data() as User;
         user.canvas = {
           id: String(tokens.user.id),
-          instanceID: 'HDSLi9ojqdTMPbZJuvhN',
+          instanceID: (await ConfigController.getGeneralConfig()).canvas.defaultInstanceId, //TODO customizable instance
           tokenType: 'refresh',
           token: CryptoUtil.encrypt(tokens.refresh_token!)
         };
@@ -171,7 +172,7 @@ export class OauthController {
         res.send({ jwt: token });
       })
       .get('/instances/:instanceid', async (req, res) => {
-        const doc = await db.collection(Collections.canvas).doc(req.params.instanceid).get();
+        const doc = await db.collection(Collections.canvas).doc(req.params.instanceid || (await ConfigController.getGeneralConfig()).canvas.defaultInstanceId).get();
         if (!doc.exists) {
           res.sendStatus(404);
           return;
