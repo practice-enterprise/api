@@ -71,7 +71,6 @@ export class OauthController {
         let token = jwt.decode(auth!);
         const userDoc = await db.collection(Collections.users).doc((token as any).id).get();
         const user = userDoc.data() as User;
-        console.log(user);
         const instance = (await db.collection(Collections.canvas).doc((token as any).instanceId).get()).data();
         if (!instance) {
           res.sendStatus(401);
