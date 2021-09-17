@@ -8,15 +8,41 @@ import { CanvasController } from '../controllers/canvas';
 import { WebSocket } from '../app';
 import { ReminderService } from './reminder-service';
 import { ChannelCreationService } from './channel-creation-service';
+import { MessageEmbed } from 'discord.js';
+import { FieldValue } from '@google-cloud/firestore';
 
 export class UserService {
+  static async clearCanvasToken(user: User): Promise<void> {
+    
+    await db.collection(Collections.users).doc(user.id).update({
+      canvas: FieldValue.delete()
+    })
+      .then(() => {
+        WebSocket?.sendRoot('sendEmbedDM', {
+          target: {
+            user: user.discord.id
+          },
+          content: new MessageEmbed()
+            .setTitle('Canvas token has expired')
+            .setDescription('Your Canvas token was cleared from our database because it was expired or wrong.\nYou can enter a new one in our oauth website.')
+        });
+      }).catch((err) => { throw new Error(`Failed to clear user ${user.id}'s canvas token. Error: ${err}`); });
+  }
+
   static async getForCourse(courseID: number, canvasInstanceID?: string): Promise<User | undefined> {
     let users: User[];
     if (canvasInstanceID != null) {
-      users = (await db.collection(Collections.users).where('courses', 'array-contains', courseID).where('canvas.instanceID', '==', canvasInstanceID).get()).docs.map((d) => d.data()) as User[];
+      users = (await db.collection(Collections.users)
+        .where('courses', 'array-contains', courseID)
+        .where('canvas.instanceID', '==', canvasInstanceID)
+        .where('canvas.token', '!=', '')
+        .get()).docs.map((d) => d.data()) as User[];
     }
     else {
-      users = (await db.collection(Collections.users).where('courses', 'array-contains', courseID).get()).docs.map((d) => d.data()) as User[];
+      users = (await db.collection(Collections.users)
+        .where('courses', 'array-contains', courseID)
+        .where('canvas.token', '!=', '')
+        .get()).docs.map((d) => d.data()) as User[];
     }
 
     /*There are no corresponding users for this courseID */
@@ -105,14 +131,14 @@ export class UserService {
         }
 
         if (user.discord.token) {
-          this.doForUserGuilds(user)
+          this.updateUserRolesChannels(user)
             .catch(err => console.error(err));
         }
       }
     }, interval);
   }
 
-  static async doForUserGuilds(user: User): Promise<void> {
+  static async updateUserRolesChannels(user: User): Promise<void> {
     if (user.discord.token == null) {
       throw new Error(`no discord token for: ${user.discord.id}`);
     }
