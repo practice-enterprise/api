@@ -19,4 +19,7 @@ export interface Config {
   jwt: {
     secret: string,
   }
+  canvas: {
+    defaultInstanceId: string
+  }
 }

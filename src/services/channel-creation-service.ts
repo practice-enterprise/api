@@ -8,7 +8,9 @@ export class ChannelCreationService {
     const courses = await CanvasController.getCourses(discordID);
     const courseIDName: Record<string, string> = {};
     courses.map((course) => courseIDName[course.id] = course.course_code);
-
+    if (!WebSocket) {
+      throw new Error('websocket undefined');
+    }
     WebSocket?.sendForGuild(guildConfig.id, 'createChannels', {
       'guildID': guildConfig.id,
       'courseChannels': guildConfig.courseChannels,

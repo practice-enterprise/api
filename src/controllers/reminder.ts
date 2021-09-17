@@ -4,17 +4,21 @@ import { Collections, db } from '../services/database';
 export class ReminderController {
   static router(): Router {
     return Router({ caseSensitive: false })
-      .get('/:id', async (req, res, next) =>{
+      .get('/:id', async (req, res, next) => {
         const users = await db.collection(Collections.reminders)
           .where('target.user', '==', req.params.id).get();
         if (users.empty) {
           res.send(undefined);
           next();
         }
-        res.send( users.docs.map(t => {return {id: t.id,
-          date: t.data().date,
-          content: t.data().content,
-          target: t.data().target};}));
+        res.send(users.docs.map(t => {
+          return {
+            id: t.id,
+            date: t.data().date,
+            content: t.data().content,
+            target: t.data().target
+          };
+        }));
         next();
       })
       .post('/', (req, res, next) => {
@@ -24,12 +28,13 @@ export class ReminderController {
           .then(() => res.sendStatus(204))
           .finally(() => next());
       })
-      .put('/:userID/:lastAssignment', (req, res, next) => {
+      .put('/lastAssignments/:userID/:lastAssignment', (req, res, next) => {
         db.collection(Collections.users)
           .doc(req.params.userID)
           .update({ 'canvas.lastAssignment': req.params.lastAssignment })
           .then(() => res.sendStatus(204))
           .finally(() => next());
+        res.sendStatus(204);
       })
       .delete('/', (req, res, next) => {
         db.collection(Collections.reminders)

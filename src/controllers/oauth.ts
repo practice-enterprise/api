@@ -10,6 +10,7 @@ import { Logger } from '../util/logger';
 import jwt from 'jsonwebtoken';
 import { CryptoUtil } from '../util/crypto';
 import { CanvasInstance } from '../models/canvas';
+import { ConfigController } from './config';
 
 export class OauthController {
   static router(): Router {
@@ -70,7 +71,6 @@ export class OauthController {
         let token = jwt.decode(auth!);
         const userDoc = await db.collection(Collections.users).doc((token as any).id).get();
         const user = userDoc.data() as User;
-        console.log(user);
         const instance = (await db.collection(Collections.canvas).doc((token as any).instanceId).get()).data();
         if (!instance) {
           res.sendStatus(401);
@@ -89,13 +89,13 @@ export class OauthController {
 
         user.canvas = {
           id: String(convasUser.id),
-          instanceID: 'DLV3kVezrRO88588uA9H',
+          instanceID: (await ConfigController.getGeneralConfig()).canvas.defaultInstanceId,
           tokenType: 'access',
           token: CryptoUtil.encrypt(accessToken)
         };
         userDoc.ref.set(user);
 
-        const discordTokens = await DiscordService.tokensFromRefresh(user.discord.token!).catch(console.error)  as DiscordTokenResponse;
+        const discordTokens = await DiscordService.tokensFromRefresh(user.discord.token!, user.id).catch(console.error)  as DiscordTokenResponse;
         const info = await DiscordService.getAuthInfo(discordTokens.access_token);
         const secret = await CryptoUtil.getSecret();
         token = jwt.sign(
@@ -146,13 +146,13 @@ export class OauthController {
         const user = userDoc.data() as User;
         user.canvas = {
           id: String(tokens.user.id),
-          instanceID: 'HDSLi9ojqdTMPbZJuvhN',
+          instanceID: (await ConfigController.getGeneralConfig()).canvas.defaultInstanceId, //TODO customizable instance
           tokenType: 'refresh',
           token: CryptoUtil.encrypt(tokens.refresh_token!)
         };
         userDoc.ref.set(user);
 
-        const discordTokens = await DiscordService.tokensFromRefresh(user.discord.token!);
+        const discordTokens = await DiscordService.tokensFromRefresh(user.discord.token!,user.id);
         const info = await DiscordService.getAuthInfo(discordTokens.access_token);
         const secret = await CryptoUtil.getSecret();
         token = jwt.sign(
@@ -171,7 +171,7 @@ export class OauthController {
         res.send({ jwt: token });
       })
       .get('/instances/:instanceid', async (req, res) => {
-        const doc = await db.collection(Collections.canvas).doc(req.params.instanceid).get();
+        const doc = await db.collection(Collections.canvas).doc(req.params.instanceid || (await ConfigController.getGeneralConfig()).canvas.defaultInstanceId).get();
         if (!doc.exists) {
           res.sendStatus(404);
           return;
@@ -194,8 +194,10 @@ export class OauthController {
         id: discordUser.id,
         token: CryptoUtil.encrypt(tokens.refresh_token)
       },
-      canvas: {},
-      id: doc.id
+      canvas: {
+      },
+      id: doc.id,
+      timeZone: 'Europe/Brussels'
     };
 
     await doc.set(user);

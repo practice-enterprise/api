@@ -1,8 +1,9 @@
-import { MessageEmbedOptions } from 'discord.js';
+import { ApplicationCommandOptionData, MessageEmbedOptions } from 'discord.js';
 
-export interface Command {
+export interface InfoCommand {
   name: string,
-  aliases: string[],
+  category: string,
   description: string;
-  response: string | MessageEmbedOptions
+  options?: ApplicationCommandOptionData[];
+  response: /*Response*/ |MessageEmbedOptions | string;
 }

@@ -12,6 +12,7 @@ export interface User {
     lastAssignment: string
   }>,
   courses?: number[],
+  timeZone: string,
 }
 
 export interface UserHash {
