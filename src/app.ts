@@ -6,13 +6,18 @@ import winston from 'winston';
 import { Logger } from './util/logger';
 import socketIO from 'socket.io';
 import { SocketManager } from './services/socket';
-import { createServer } from 'http';
+import http from 'http';
+import https from 'https';
+import fs from 'fs';
 import { Env } from './util/env';
 import { AnnouncementService } from './services/announcement-service';
 import { ReminderService } from './services/reminder-service';
 import { UserService } from './services/user-service';
 import { CryptoUtil } from './util/crypto';
 import * as settings from '../settings.json';
+
+const privateKey  = fs.readFileSync('./sslcert/server.key', 'utf8');
+const certificate = fs.readFileSync('./sslcert/server.crt', 'utf8');
 
 if (process.env.NODE_ENV == null || process.env.NODE_ENV === 'develepmont') {
   dotenv.config();
@@ -41,12 +46,18 @@ export let WebSocket: SocketManager | undefined = undefined;
   await CryptoUtil.validate();
 
   const app = applyRoutes(Express());
-  const server = createServer(app);
-  const io = new socketIO.Server(server);
+  const httpServer = http.createServer(app);
+  const httpsServer = https.createServer({key: privateKey, cert: certificate},app);
+  // const server = createServer(app);
+  const io = new socketIO.Server(httpServer);
   WebSocket = new SocketManager(io);
 
-  server.listen(process.env.PORT || settings.port, () => {
-    Logger.info(`listening on localhost:${process.env.PORT || settings.port}`);
+  httpServer.listen(process.env.PORT || settings.port, () => {
+    Logger.info(`listening on localhost:${process.env.PORTHTTPS || settings.port}`);
+  });
+
+  httpsServer.listen(process.env.PORTHTTPS || settings.porthttps, () => {
+    Logger.info(`listening on localhost:${process.env.PORTHTTPS || settings.porthttps}`);
   });
 
   ReminderService.initSendReminder(settings.polling.reminderInterval);

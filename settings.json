@@ -1,5 +1,6 @@
 {
   "port": 3000,
+  "porthttps": 3443,
   "polling": {
     "announcementInterval": 30000,
     "reminderInterval": 30000,
