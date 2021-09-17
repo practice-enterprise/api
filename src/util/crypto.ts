@@ -36,7 +36,6 @@ export class CryptoUtil {
           res.sendStatus(403);
         } 
         else {
-          console.log(authData?.user, process.env.PASSWORDAPIBOT);
           if (authData?.user.password == process.env.PASSWORDAPIBOT) {
             next(); // Authenticated TODO hashed passwords
           }
@@ -68,7 +67,7 @@ export class CryptoUtil {
 
   static decrypt(hash: UserHash): string {
     const decipher = crypto.createDecipheriv(this.algorithm, this.key(), Buffer.from(hash.iv, 'hex'));
-    const decrpyted = Buffer.concat([decipher.update(Buffer.from(hash.content, 'hex')), decipher.final()]);
-    return decrpyted.toString();
+    const decrypted = Buffer.concat([decipher.update(Buffer.from(hash.content, 'hex')), decipher.final()]);
+    return decrypted.toString();
   }
 }
