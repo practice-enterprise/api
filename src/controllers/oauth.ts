@@ -15,6 +15,24 @@ import { ConfigController } from './config';
 export class OauthController {
   static router(): Router {
     return Router({ caseSensitive: false })
+      // Login to API. This is for the discord bot, not the users.
+      .post('/login', async (req, res) => {
+        // Test user
+        const loginInfo = {
+          // name: req.body.name,
+          password: req.body.password
+        };
+
+        const secret = await CryptoUtil.getSecret();
+        const token = jwt.sign(
+          {
+            user: loginInfo
+          },
+          secret,
+          // { expiresIn: '1d' } // For simplicity in bot I won't make it expire.
+        );
+        res.send({token: token});
+      })
       .post('/callback/discord', async (req, res) => {
         const tokens = await axios.request({
           method: 'POST',
@@ -184,6 +202,24 @@ export class OauthController {
           redirectUri: data.oauth?.redirectUri,
           manual: !data.oauth
         });
+      })
+      //Only route that needs verification in oauth to logout
+      .post('/logout/discord', CryptoUtil.verifyToken, async (req, res) => {
+        const users = db.collection(Collections.users).where('discord.id', '==', req.query.discordid);
+        users.get()
+          .then((snap) =>{
+            if (snap.docs.length < 1) {
+              res.sendStatus(400); //No users found
+            }
+            snap.forEach((doc) => {
+              doc.ref.delete();
+            });
+            res.sendStatus(200);
+          })
+          .catch((err) => {
+            res.sendStatus(500);
+            Logger.error('Failed to logout/delete users by discordid ', req.query.discordid, '\nError: ', err);
+          });
       });
   }
 

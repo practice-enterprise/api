@@ -11,36 +11,37 @@ export class CanvasController {
   static router(): Router {
     return Router({ caseSensitive: false })
       /* DB canvas instance doc requests*/
-      .get('/:id', async (req, res, next) => {
+      .get('/:id', CryptoUtil.verifyToken, async (req, res, next) => {
         db.collection(Collections.canvas).doc(req.params.id)
-          .get().then((doc) => res.send(doc.data()))
-          .finally(() => next());
+          .get().then((doc) => res.send(doc.data()));
+        // .finally(() => next());
       })
-      .put('/', (req, res, next) => {
+      .put('/', CryptoUtil.verifyToken, (req, res, next) => {
         db.collection(Collections.canvas).doc(req.body.id).set(req.body)
-          .then(() => res.sendStatus(204))
-          .finally(() => next());
+          .then(() => res.sendStatus(204));
+        // .finally(() => next());
       })
 
       /* # Canvas LMS API requests # */
       /* Find courses for a discord user*/
-      .get('/:discordID/courses', async (req, res, next) => {
+      .get('/:discordID/courses', CryptoUtil.verifyToken, async (req, res, next) => {
+        console.log('sup');
         this.getCourses(req.params.discordID)
           .then((courses) => res.send(courses))
-          .catch(() => res.sendStatus(404))
-          .finally(() => next());
+          .catch(() => res.sendStatus(404));
+        // .finally(() => next());
       })
 
       //gets instance id for a user
-      .get('/:discordID/instanceId', async (req, res, next) => {
+      .get('/:discordID/instanceId', CryptoUtil.verifyToken, async (req, res, next) => {
         UserService.getUser(req.params.discordID)
           .then((user) => res.send(user.canvas.instanceID))
-          .catch(() => res.sendStatus(404))
-          .finally(() => next());
+          .catch(() => res.sendStatus(404));
+        // .finally(() => next());
       })
 
       /* Find modules of a course for a discord user*/
-      .get('/:discordID/courses/:courseID/modules', async (req, res, next) => {
+      .get('/:discordID/courses/:courseID/modules', CryptoUtil.verifyToken, async (req, res, next) => {
         const snap = (await db.collection(Collections.users).where('discord.id', '==', req.params.discordID).get());
         if (snap.empty) {
           res.sendStatus(404);
@@ -80,7 +81,7 @@ export class CanvasController {
           });
       })
       /* Find items from an itemURL (itemURL from module) for a discord user*/
-      .get('/:discordID/items/:item_URL', async (req, res, next) => {
+      .get('/:discordID/items/:item_URL', CryptoUtil.verifyToken, async (req, res, next) => {
         const snap = (await db.collection(Collections.users).where('discord.id', '==', req.params.discordID).get());
         if (snap.empty) {
           res.sendStatus(404);
