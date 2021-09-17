@@ -28,26 +28,28 @@ export class CryptoUtil {
   // Auth is in most cases seperate but for sake of simplicity I don't care.
   static async verifyToken(req: Request, res: Response, next: NextFunction): Promise<void> {
     const header = req.headers.authorization;
-    if (header != null) {
-      const token = header.split(' ')[1];
 
-      jwt.verify(token, await CryptoUtil.getSecret(), (err, authData) => {
-        if (err) {
-          res.sendStatus(403);
-        } 
-        else {
-          if (authData?.user.password == process.env.PASSWORDAPIBOT) {
-            next(); // Authenticated TODO hashed passwords
-          }
-          else {
-            res.sendStatus(403);
-          }
+    if (header == null) {
+      res.sendStatus(401); // Unauthorized/not authenticated
+      return;
+    }
+
+    const token = header.split(' ')[1];
+
+    jwt.verify(token, await CryptoUtil.getSecret(), (err, authData) => {
+      if (err) {
+        res.sendStatus(403); // Forbidden/no authorization 
+      } 
+      else {
+        if (authData?.user.password == process.env.PASSWORDAPIBOT) {
+          next(); // Authenticated, continues with rest of request. TODO: hashed passwords
         }
-      });
-    }
-    else {
-      res.sendStatus(401);
-    }
+        else {
+          res.sendStatus(403); // Forbidden/no authorization 
+        }
+      }
+    });
+
     return;
   }
 
