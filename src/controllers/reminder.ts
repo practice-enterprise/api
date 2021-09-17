@@ -1,15 +1,16 @@
 import { Router } from 'express';
 import { Collections, db } from '../services/database';
+import { CryptoUtil } from '../util/crypto';
 
 export class ReminderController {
   static router(): Router {
     return Router({ caseSensitive: false })
-      .get('/:id', async (req, res, next) => {
+      .get('/:id', CryptoUtil.verifyToken, async (req, res, next) => {
         const users = await db.collection(Collections.reminders)
           .where('target.user', '==', req.params.id).get();
         if (users.empty) {
           res.send(undefined);
-          next();
+          // next();
         }
         res.send(users.docs.map(t => {
           return {
@@ -19,49 +20,49 @@ export class ReminderController {
             target: t.data().target
           };
         }));
-        next();
+        // next();
       })
-      .post('/', (req, res, next) => {
+      .post('/', CryptoUtil.verifyToken, (req, res, next) => {
         db.collection(Collections.reminders)
           .doc()
           .set(req.body)
-          .then(() => res.sendStatus(204))
-          .finally(() => next());
+          .then(() => res.sendStatus(204));
+        // .finally(() => next());
       })
-      .put('/lastAssignments/:userID/:lastAssignment', (req, res, next) => {
+      .put('/lastAssignments/:userID/:lastAssignment', CryptoUtil.verifyToken, (req, res, next) => {
         db.collection(Collections.users)
           .doc(req.params.userID)
           .update({ 'canvas.lastAssignment': req.params.lastAssignment })
-          .then(() => res.sendStatus(204))
-          .finally(() => next());
+          .then(() => res.sendStatus(204));
+        // .finally(() => next());
         res.sendStatus(204);
       })
-      .delete('/', (req, res, next) => {
+      .delete('/', CryptoUtil.verifyToken, (req, res, next) => {
         db.collection(Collections.reminders)
           .doc((req.body.id)).delete()
           .then(() => res.sendStatus(204))
           .finally(() => next());
       })
-      .get('/timezone/:id', async (req, res, next) => {
+      .get('/timezone/:id', CryptoUtil.verifyToken, async (req, res, next) => {
         const users = await db.collection(Collections.users)
           .where('discord.id', '==', req.params.id).get();
         if (users.empty) {
           res.sendStatus(404);
-          next();
+          // next();
         }
         res.send(users.docs[0].data().timeZone);
-        next();
+        // next();
       })
-      .put('/timezone/:id', async (req, res, next) => {
+      .put('/timezone/:id', CryptoUtil.verifyToken, async (req, res, next) => {
         const users = await db.collection(Collections.users)
           .where('discord.id', '==', req.params.id).get();
         if (users.empty) {
           res.sendStatus(404);
-          next();
+          // next();
         }
         db.collection(Collections.users).doc(users.docs[0].id).update({ timeZone: req.body.tz });
         res.sendStatus(204);
-        next();
+        // next();
       });
   }
 }
