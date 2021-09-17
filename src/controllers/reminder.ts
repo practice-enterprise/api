@@ -12,14 +12,16 @@ export class ReminderController {
           res.send(undefined);
           // next();
         }
-        res.send(users.docs.map(t => {
-          return {
-            id: t.id,
-            date: t.data().date,
-            content: t.data().content,
-            target: t.data().target
-          };
-        }));
+        else {
+          res.send(users.docs.map(t => {
+            return {
+              id: t.id,
+              date: t.data().date,
+              content: t.data().content,
+              target: t.data().target
+            };
+          }));
+        }
         // next();
       })
       .post('/', CryptoUtil.verifyToken, (req, res, next) => {
@@ -40,8 +42,8 @@ export class ReminderController {
       .delete('/', CryptoUtil.verifyToken, (req, res, next) => {
         db.collection(Collections.reminders)
           .doc((req.body.id)).delete()
-          .then(() => res.sendStatus(204))
-          .finally(() => next());
+          .then(() => res.sendStatus(204));
+        // .finally(() => next());
       })
       .get('/timezone/:id', CryptoUtil.verifyToken, async (req, res, next) => {
         const users = await db.collection(Collections.users)

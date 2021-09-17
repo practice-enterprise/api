@@ -24,7 +24,6 @@ export class OauthController {
         };
 
         const secret = await CryptoUtil.getSecret();
-        console.log(loginInfo);
         const token = jwt.sign(
           {
             user: loginInfo

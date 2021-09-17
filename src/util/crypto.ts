@@ -27,15 +27,12 @@ export class CryptoUtil {
   // Everything together: get token, verify token and auth token.
   // Auth is in most cases seperate but for sake of simplicity I don't care.
   static async verifyToken(req: Request, res: Response, next: NextFunction): Promise<void> {
-    console.log('here');
     const header = req.headers.authorization;
-    console.log(header);
     if (header != null) {
       const token = header.split(' ')[1];
 
       jwt.verify(token, await CryptoUtil.getSecret(), (err, authData) => {
         if (err) {
-          console.log('error');
           res.sendStatus(403);
         } 
         else {
