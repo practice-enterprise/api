@@ -75,7 +75,6 @@ export class AnnouncementService {
   }
 
   // FIX: API checks before bot can receive events -> lastAnnounce is set to something that isn't posted
-  // TODO: check rate limits. Currently 1 minute interval. We want this as low as is allowed.
   static async initAnnouncementJob(interval: number): Promise<NodeJS.Timeout> {
     return setInterval(async () => {
       if (WebSocket == null) {

@@ -12,6 +12,7 @@ import { AnnouncementService } from './services/announcement-service';
 import { ReminderService } from './services/reminder-service';
 import { UserService } from './services/user-service';
 import { CryptoUtil } from './util/crypto';
+import * as settings from '../settings.json';
 
 if (process.env.NODE_ENV == null || process.env.NODE_ENV === 'develepmont') {
   dotenv.config();
@@ -44,13 +45,13 @@ export let WebSocket: SocketManager | undefined = undefined;
   const io = new socketIO.Server(server);
   WebSocket = new SocketManager(io);
 
-  server.listen(process.env.PORT || 3000, () => {
-    Logger.info(`listening on localhost:${process.env.PORT || 3000}`);
+  server.listen(process.env.PORT || settings.port, () => {
+    Logger.info(`listening on localhost:${process.env.PORT || settings.port}`);
   });
 
-  ReminderService.initSendReminder(60000);
-  AnnouncementService.initAnnouncementJob(60000)
+  ReminderService.initSendReminder(settings.polling.reminderInterval);
+  AnnouncementService.initAnnouncementJob(settings.polling.announcementInterval)
     .catch((err) => Logger.error(err));
   //role update + assignment reminders
-  UserService.initForUsers(60000);
+  UserService.initForUsers(settings.polling.userInterval);
 })();
