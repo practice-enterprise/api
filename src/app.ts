@@ -46,18 +46,18 @@ export let WebSocket: SocketManager | undefined = undefined;
   await CryptoUtil.validate();
 
   const app = applyRoutes(Express());
-  const httpServer = http.createServer(app);
-  const httpsServer = https.createServer({key: privateKey, cert: certificate},app);
+  // const httpServer = http.createServer(app);
+  const httpsServer = https.createServer({key: privateKey, cert: certificate}, app);
   // const server = createServer(app);
-  const io = new socketIO.Server(httpServer);
+  const io = new socketIO.Server(httpsServer);
   WebSocket = new SocketManager(io);
 
-  httpServer.listen(process.env.PORT || settings.port, () => {
-    Logger.info(`listening on localhost:${process.env.PORTHTTPS || settings.port}`);
-  });
+  // httpServer.listen(process.env.PORT || settings.port, () => {
+  //   Logger.info(`listening on localhost:${process.env.PORTHTTPS || settings.port}`);
+  // });
 
   httpsServer.listen(process.env.PORTHTTPS || settings.porthttps, () => {
-    Logger.info(`listening on localhost:${process.env.PORTHTTPS || settings.porthttps}`);
+    Logger.info(`listening on localhost:${process.env.PORTHTTPS || settings.porthttps} ssl`);
   });
 
   ReminderService.initSendReminder(settings.polling.reminderInterval);
