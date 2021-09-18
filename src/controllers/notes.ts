@@ -12,7 +12,9 @@ export class NotesController {
           res.sendStatus(404);
           // next();
         }
-        res.send(noteSnapshot.docs[0].data());
+        else{
+          res.send(noteSnapshot.docs[0].data());
+        }
         // next();
       })
 
