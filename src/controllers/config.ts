@@ -11,7 +11,7 @@ export class ConfigController {
         // .finally(() => next());
       })
 
-      .get('/defaultInstance', CryptoUtil.verifyToken, (req, res, next)=>{
+      .get('/defaultInstance', (req, res, next)=>{
         console.log('gets');
         this.getGeneralConfig().then((i)=> res.send(i.canvas.defaultInstanceId));
       });
