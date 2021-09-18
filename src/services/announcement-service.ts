@@ -41,7 +41,8 @@ export class AnnouncementService {
       baseURL: canvas.endpoint,
       url: `/api/v1/courses/${courseID}/discussion_topics`
     }).then((d) => d.data)
-      .catch(() => {
+      .catch((err) => {
+        console.log(err);
         UserService.clearCanvasToken(user);
         return undefined;});
     //TODO: handle refresh/ 401/403
@@ -50,7 +51,8 @@ export class AnnouncementService {
   static async buildAnnouncementEmbed(announcement: CanvasAnnouncement, courseID: number, discordUserID: string): Promise<MessageEmbed> {
     const ts = new TurndownService();
 
-    const courses = await CanvasController.getCourses(discordUserID);
+    const courses = await CanvasController.getCourses(discordUserID)
+      .catch((err)=> console.log(err));
     if (courses === undefined) {
       throw new Error('Courses not defined. Likely invalid or undefined token from users.');
     }

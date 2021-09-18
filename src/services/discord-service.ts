@@ -4,6 +4,7 @@ import { DiscordTokenResponse as DiscordTokens } from '../models/oauth';
 import { UserHash } from '../models/users';
 import { CryptoUtil } from '../util/crypto';
 import { Env } from '../util/env';
+import { Logger } from '../util/logger';
 import { Collections, db } from './database';
 
 export class DiscordService {
@@ -31,6 +32,7 @@ export class DiscordService {
   }
 
   static async tokensFromRefresh(hash: UserHash, userId: string): Promise<DiscordTokens> {
+    Logger.info(`tokensFromRefresh called user. ${userId}`);
     const tokens = await axios.request<DiscordTokens>({
       method: 'POST',
       headers: {
@@ -46,8 +48,10 @@ export class DiscordService {
       }),
       url: 'https://discord.com/api/oauth2/token',
     }).then((res) => res.data);
-    const hashed = CryptoUtil.encrypt(tokens.refresh_token);
-    db.collection(Collections.users).doc(userId).update({'discord.token.content': hashed.content, 'discord.token.iv':hashed.iv});
+    if(tokens){
+      const hashed = CryptoUtil.encrypt(tokens.refresh_token);
+      db.collection(Collections.users).doc(userId).update({'discord.token.content': hashed.content, 'discord.token.iv':hashed.iv});
+    }
     return tokens;
   }
 }

@@ -123,7 +123,7 @@ export class CanvasController {
       throw new Error(`no user with id ${discordID}`);
     }
     const user = snap.docs[0].data() as User;
-    if (!user.canvas || user.canvas.token == null) {
+    if (!user.canvas || !user.canvas.token) {
       throw new Error(`No canvas token for discord user ${discordID}`);
     }
     if (user.canvas.instanceID == null) {
@@ -173,7 +173,10 @@ export class CanvasController {
     if (canvas == undefined) {
       throw new Error(`no instance with id ${user.canvas.instanceID}`);
     }
-
+    if(!user.canvas.token)
+    {
+      throw new Error(`${user.discord.id} has no token`);
+    }
     return Axios.request<CalenderAssignment[]>({
       headers: {
         Authorization: `Bearer ${CryptoUtil.decrypt(user.canvas.token!)}`,

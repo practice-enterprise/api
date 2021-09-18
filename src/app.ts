@@ -39,7 +39,6 @@ export let WebSocket: SocketManager | undefined = undefined;
 
 (async () => {
   await CryptoUtil.validate();
-
   const app = applyRoutes(Express());
   const server = createServer(app);
   const io = new socketIO.Server(server);
