@@ -25,7 +25,6 @@ export class CanvasController {
       /* # Canvas LMS API requests # */
       /* Find courses for a discord user*/
       .get('/:discordID/courses', CryptoUtil.verifyToken, async (req, res, next) => {
-        console.log('sup');
         this.getCourses(req.params.discordID)
           .then((courses) => res.send(courses))
           .catch(() => res.sendStatus(404));

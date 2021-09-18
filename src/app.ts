@@ -16,9 +16,6 @@ import { UserService } from './services/user-service';
 import { CryptoUtil } from './util/crypto';
 import * as settings from '../settings.json';
 
-const privateKey  = fs.readFileSync('./sslcert/server.key', 'utf8');
-const certificate = fs.readFileSync('./sslcert/server.crt', 'utf8');
-
 if (process.env.NODE_ENV == null || process.env.NODE_ENV === 'develepmont') {
   dotenv.config();
   Logger.add(new winston.transports.Console({ format: winston.format.combine(winston.format.colorize(), winston.format.simple()), level: 'debug' }));
@@ -44,21 +41,36 @@ export let WebSocket: SocketManager | undefined = undefined;
 
 (async () => {
   await CryptoUtil.validate();
-
   const app = applyRoutes(Express());
-  // const httpServer = http.createServer(app);
-  const httpsServer = https.createServer({key: privateKey, cert: certificate}, app);
-  // const server = createServer(app);
-  const io = new socketIO.Server(httpsServer);
-  WebSocket = new SocketManager(io);
 
-  // httpServer.listen(process.env.PORT || settings.port, () => {
-  //   Logger.info(`listening on localhost:${process.env.PORTHTTPS || settings.port}`);
-  // });
+  if (settings.https.useHttps) {
+    Logger.info('Using https (configure in settings.json)');
+  
+    const privateKey  = fs.readFileSync(settings.https.key, 'utf8');
+    const certificate = fs.readFileSync(settings.https.crt, 'utf8'); 
+    const httpsServer = https.createServer({key: privateKey, cert: certificate}, app);
 
-  httpsServer.listen(process.env.PORTHTTPS || settings.porthttps, () => {
-    Logger.info(`listening on localhost:${process.env.PORTHTTPS || settings.porthttps} ssl`);
-  });
+    const io = new socketIO.Server(httpsServer);
+    WebSocket = new SocketManager(io);
+
+
+    httpsServer.listen(process.env.PORTHTTPS || settings.https.port, () => {
+      Logger.info(`listening on localhost:${process.env.PORTHTTPS || settings.https.port} secure`);
+    });
+  }
+  else {
+    const httpServer = http.createServer(app);
+  
+    const io = new socketIO.Server(httpServer);
+    WebSocket = new SocketManager(io);
+
+    httpServer.listen(process.env.PORT || settings.port, () => {
+      Logger.info(`listening on localhost:${process.env.PORTHTTPS || settings.port}`);
+    });
+  }
+
+
+
 
   ReminderService.initSendReminder(settings.polling.reminderInterval);
   AnnouncementService.initAnnouncementJob(settings.polling.announcementInterval)

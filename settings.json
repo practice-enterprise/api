@@ -1,6 +1,11 @@
 {
   "port": 3000,
-  "porthttps": 3443,
+  "https": {
+    "useHttps": true,
+    "port": 3443,
+    "key": "./sslcert/server.key",
+    "crt": "./sslcert/server.crt"
+  },
   "polling": {
     "announcementInterval": 30000,
     "reminderInterval": 30000,
