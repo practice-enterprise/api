@@ -123,7 +123,7 @@ export class CanvasController {
       throw new Error(`no user with id ${discordID}`);
     }
     const user = snap.docs[0].data() as User;
-    if (user.canvas.token == null) {
+    if (!user.canvas || user.canvas.token == null) {
       throw new Error(`No canvas token for discord user ${discordID}`);
     }
     if (user.canvas.instanceID == null) {
@@ -156,6 +156,7 @@ export class CanvasController {
       db.collection(Collections.users).doc(user.id).set(user);
       return courses;
     } else {
+      UserService.clearCanvasToken(user);
       throw new Error(`Something went wrong with the request for courses of user: ${discordID}`);
     }
 
