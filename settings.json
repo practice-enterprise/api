@@ -1,8 +1,8 @@
 {
   "port": 3000,
   "polling": {
-    "announcementInterval": 30000,
-    "reminderInterval": 30000,
-    "userInterval": 86400
+    "announcementInterval": 300000,
+    "reminderInterval": 120000,
+    "userInterval": 120000
   }
 }
