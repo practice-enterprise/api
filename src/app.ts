@@ -50,7 +50,7 @@ export let WebSocket: SocketManager | undefined = undefined;
 
   ReminderService.initSendReminder(settings.polling.reminderInterval);
   AnnouncementService.initAnnouncementJob(settings.polling.announcementInterval)
-    .catch((err) => Logger.error(err));
+    .catch(() => Logger.error('error with announcements'));
   //role update + assignment reminders
   UserService.initForUsers(settings.polling.userInterval);
 })();

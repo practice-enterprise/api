@@ -30,18 +30,18 @@ export class UserService {
   }
 
   static async clearDiscordToken(user: User): Promise<void> {
-    await db.collection(Collections.users).doc(user.id).update({
+    /*await db.collection(Collections.users).doc(user.id).update({
       'discord.token': FieldValue.delete()
-    }).then(() => {
-      WebSocket?.sendRoot('sendEmbedDM', {
-        target: {
-          user: user.discord.id
-        },
-        content: new MessageEmbed()
-          .setTitle('Discord token has expired')
-          .setDescription('Your Discord token was cleared from our database because it was expired or wrong.\nYou can log back in on the website .')
-      });
-    }).catch((err) => { throw new Error(`Failed to clear user ${user.id}'s canvas token. Error: ${err}`); });
+    }).then(() => {*/
+    WebSocket?.sendRoot('sendEmbedDM', {
+      target: {
+        user: user.discord.id
+      },
+      content: new MessageEmbed()
+        .setTitle('Discord token has expired')
+        .setDescription('Your Discord token was cleared from our database because it was expired or wrong.\nYou can log back in on the website .')
+    });
+    //}).catch((err) => { throw new Error(`Failed to clear user ${user.id}'s canvas token. Error: ${err}`); });
   }
 
   static async getForCourse(courseID: number, canvasInstanceID?: string): Promise<User | undefined> {
@@ -110,8 +110,9 @@ export class UserService {
       throw new Error(`${user.discord.id} no discord token`);
     }
 
-    const courses = await CanvasController.getCourses(user.discord.id);
 
+    const courses = await CanvasController.getCourses(user.discord.id).catch(/*(err)=>{console.log('update roles'); console.log(err);}*/);
+    if (!courses) return;
     const validRoleTypes: string[] = [];
     for (const course of courses) {
       if (course.enrollments) {
@@ -142,12 +143,12 @@ export class UserService {
       for (const user of users) {
         if (user.courses && user.courses.length > 0) {
           ReminderService.sendAssignment(user, 2)
-            .catch(err => console.error(err));
+            .catch(/*() => Logger.error('something went wrong with assignments')*/);
         }
 
         if (user.discord.token) {
           this.updateUserRolesChannels(user)
-            .catch(err => console.error(err));
+            .catch(/*()=> Logger.error('update roles error')*/);
         }
       }
     }, interval);
@@ -159,9 +160,9 @@ export class UserService {
     }
 
     const configs = (await db.collection(Collections.guilds).get()).docs.map((d) => d.data()) as Guild[];
-    const tokens = await DiscordService.tokensFromRefresh(user.discord.token, user.id).catch((err) => {this.clearDiscordToken(user); console.log(err);})
-    if(!tokens) return;
-    const guilds = await DiscordService.getGuilds(tokens.access_token).catch(() => this.clearDiscordToken(user));
+    const tokens = await DiscordService.tokensFromRefresh(user.discord.token, user.id).catch(() => { Logger.error('tokens from refresh failed'); this.clearDiscordToken(user); });
+    if (!tokens) return;
+    const guilds = await DiscordService.getGuilds(tokens.access_token).catch(/*() => this.clearDiscordToken(user)*/);
     if (!guilds) {
       //throw new Error(`could not get guilds for user: ${user.discord.id} removed`);
       Logger.error(`userService line 164: Could not get guilds from user ${user.discord.id}, removed token from db`);
@@ -170,10 +171,10 @@ export class UserService {
 
     const validGuildConfigs = configs.filter(c => guilds.map((g) => g.id).includes(c.id));
     this.updateRoles(user, validGuildConfigs)
-      .catch(err => console.log(err));
+      .catch();
     for (const config of validGuildConfigs) {
       ChannelCreationService.CreateChannels(user.discord.id, config)
-        .catch(err => console.log(err));
+        .catch();
     }
     return;
   }

@@ -113,7 +113,7 @@ export class OauthController {
         };
         userDoc.ref.set(user);
 
-        const discordTokens = await DiscordService.tokensFromRefresh(user.discord.token!, user.id).catch(console.error)  as DiscordTokenResponse;
+        const discordTokens = await DiscordService.tokensFromRefresh(user.discord.token!, user.id).catch()  as DiscordTokenResponse;
         const info = await DiscordService.getAuthInfo(discordTokens.access_token);
         const secret = await CryptoUtil.getSecret();
         token = jwt.sign(
@@ -171,6 +171,7 @@ export class OauthController {
         userDoc.ref.set(user);
 
         const discordTokens = await DiscordService.tokensFromRefresh(user.discord.token!,user.id);
+        if(!discordTokens) return;
         const info = await DiscordService.getAuthInfo(discordTokens.access_token);
         const secret = await CryptoUtil.getSecret();
         token = jwt.sign(

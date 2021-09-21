@@ -25,7 +25,7 @@ export class CanvasController {
       /* # Canvas LMS API requests # */
       /* Find courses for a discord user*/
       .get('/:discordID/courses', CryptoUtil.verifyToken, async (req, res, next) => {
-        console.log('sup');
+        console.log('get courses api');
         this.getCourses(req.params.discordID)
           .then((courses) => res.send(courses))
           .catch(() => res.sendStatus(404));
@@ -117,22 +117,25 @@ export class CanvasController {
       });
   }
 
-  static async getCourses(discordID: string): Promise<CanvasCourse[]> {
+  static async getCourses(discordID: string): Promise<CanvasCourse[] | void> {
     const snap = (await db.collection(Collections.users).where('discord.id', '==', discordID).get());
     if (snap.empty) {
       throw new Error(`no user with id ${discordID}`);
     }
     const user = snap.docs[0].data() as User;
     if (!user.canvas || !user.canvas.token) {
-      throw new Error(`No canvas token for discord user ${discordID}`);
+      //throw new Error(`No canvas token for discord user ${discordID}`);
+      return;
     }
     if (user.canvas.instanceID == null) {
-      throw new Error(`No canvas instance set for discord user ${discordID}`);
+      //throw new Error(`No canvas instance set for discord user ${discordID}`);
+      return;
     }
 
     const canvas = (await db.collection(Collections.canvas).doc(user.canvas.instanceID).get()).data();
     if (!canvas) {
-      throw new Error(`could not find canvas config with id ${user.canvas.instanceID} for user ${discordID}`);
+      //throw new Error(`could not find canvas config with id ${user.canvas.instanceID} for user ${discordID}`);
+      return;
     }
 
     const courses = await Axios.request<CanvasCourse[]>({
@@ -156,7 +159,7 @@ export class CanvasController {
       db.collection(Collections.users).doc(user.id).set(user);
       return courses;
     } else {
-      UserService.clearCanvasToken(user);
+      //UserService.clearCanvasToken(user);
       throw new Error(`Something went wrong with the request for courses of user: ${discordID}`);
     }
 

@@ -50,9 +50,9 @@ export class AnnouncementService {
 
   static async buildAnnouncementEmbed(announcement: CanvasAnnouncement, courseID: number, discordUserID: string): Promise<MessageEmbed> {
     const ts = new TurndownService();
-
+    console.log('announcements courses');
     const courses = await CanvasController.getCourses(discordUserID)
-      .catch((err)=> console.log(err));
+      .catch();
     if (courses === undefined) {
       throw new Error('Courses not defined. Likely invalid or undefined token from users.');
     }
@@ -103,7 +103,7 @@ export class AnnouncementService {
         for (const courseID of courseIDs) {
           const user = await UserService.getForCourse(courseID, canvas.id);
           if (user === undefined) {
-            console.error('No user was found for subject or potentially none had tokens.', courseID);
+            //console.error('No user was found for subject or potentially none had tokens.', courseID);
             continue;
           }
 
@@ -127,7 +127,7 @@ export class AnnouncementService {
 
             // No channel is set for a course.
             if (channelID == undefined || channelID.length === 0 || channelID.length == undefined) {
-              console.error(`No channelID was set for courseID ${courseID} in guild ${guild.id}`);
+              //console.error(`No channelID was set for courseID ${courseID} in guild ${guild.id}`);
               continue;
             }
             // Last announcement ID is undefined

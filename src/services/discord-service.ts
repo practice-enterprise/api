@@ -8,7 +8,7 @@ import { Logger } from '../util/logger';
 import { Collections, db } from './database';
 
 export class DiscordService {
-  static async getGuilds(token: string): Promise<DiscordPartialGuild[]> {
+  static async getGuilds(token: string): Promise<DiscordPartialGuild[] | void> {
     return await axios.request<DiscordPartialGuild[]>({
       headers: {
         Authorization: `Bearer ${token}`
@@ -17,7 +17,7 @@ export class DiscordService {
       baseURL: 'https://discord.com/api/v8',
       url: '/users/@me/guilds'
     })
-      .then((res) => res.data);
+      .then((res) => res.data).catch((err) => console.log(err));
   }
 
   static async getAuthInfo(token: string): Promise<DiscordAuthInfo> {
@@ -31,8 +31,8 @@ export class DiscordService {
     }).then((r) => r.data);
   }
 
-  static async tokensFromRefresh(hash: UserHash, userId: string): Promise<DiscordTokens> {
-    Logger.info(`tokensFromRefresh called user. ${userId}`);
+  static async tokensFromRefresh(hash: UserHash, userId: string): Promise<DiscordTokens | void> {
+    //Logger.info(`tokensFromRefresh called user. ${userId}`);
     const tokens = await axios.request<DiscordTokens>({
       method: 'POST',
       headers: {
@@ -47,7 +47,7 @@ export class DiscordService {
         'scope': 'identify guilds'
       }),
       url: 'https://discord.com/api/oauth2/token',
-    }).then((res) => res.data);
+    }).then((res) => res.data).catch((err) => console.log(err));
     if(tokens){
       const hashed = CryptoUtil.encrypt(tokens.refresh_token);
       db.collection(Collections.users).doc(userId).update({'discord.token.content': hashed.content, 'discord.token.iv':hashed.iv});

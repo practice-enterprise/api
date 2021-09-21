@@ -36,14 +36,14 @@ export class ReminderService {
   }
 
   static async sendAssignment(user: User, warningDays: number): Promise<void> {
-    const assignments = await CanvasController.getCalenderAssignments(user, warningDays);
+    const assignments = await CanvasController.getCalenderAssignments(user, warningDays).catch();
     if (assignments == undefined) {
       throw new Error(`could not get assignments for ${user.discord.id}`);
     }
     const ts = new TurndownService();
     const index = assignments.findIndex((a) => a.id == user.canvas.lastAssignment) + 1;
     if (index >= assignments.length) {
-      console.log(`assignments for ${user.discord.id} is up to date`);
+      //console.log(`assignments for ${user.discord.id} is up to date`);
       return;
     }
     const assignment = assignments[index];

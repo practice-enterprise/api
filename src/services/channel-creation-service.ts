@@ -5,7 +5,8 @@ import { WebSocket } from '../app';
 
 export class ChannelCreationService {
   static async CreateChannels(discordID: string, guildConfig: Guild): Promise<void> {
-    const courses = await CanvasController.getCourses(discordID);
+    const courses = await CanvasController.getCourses(discordID).catch(/*()=> {console.log('create channels, get courses error'); }*/);
+    if(!courses) return;
     const courseIDName: Record<string, string> = {};
     courses.map((course) => courseIDName[course.id] = course.course_code);
     if (!WebSocket) {
