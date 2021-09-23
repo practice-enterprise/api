@@ -30,8 +30,7 @@ export class CanvasController {
       .get('/:discordID/courses', CryptoUtil.verifyToken, async (req, res, next) => {
         console.log('get courses api');
         this.getCourses(req.params.discordID)
-          .then((courses) => res.send(courses))
-          .catch(() => res.sendStatus(404));
+          .then((courses) => courses ? res.send(courses): res.sendStatus(404));
         // .finally(() => next());
       })
 
