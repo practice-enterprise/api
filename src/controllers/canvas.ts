@@ -6,6 +6,9 @@ import { User } from '../models/users';
 import { DateTime } from 'luxon';
 import { CryptoUtil } from '../util/crypto';
 import { UserService } from '../services/user-service';
+import { Logger } from '../util/logger';
+
+export const canvasErrorCount: Record<string, number>/*discordId, error amount*/ = {};
 
 export class CanvasController {
   static router(): Router {
@@ -117,7 +120,8 @@ export class CanvasController {
       });
   }
 
-  static async getCourses(discordID: string): Promise<CanvasCourse[] | void> {
+  //work around for "random" canvas crashes
+  static async getCourses(discordID: string): Promise<CanvasCourse[] | undefined> {
     const snap = (await db.collection(Collections.users).where('discord.id', '==', discordID).get());
     if (snap.empty) {
       throw new Error(`no user with id ${discordID}`);
@@ -147,8 +151,7 @@ export class CanvasController {
       baseURL: canvas.endpoint,
       url: '/api/v1/courses'
     }).then((res) => res.data)
-      .catch((err) => {
-        console.error(err);
+      .catch(() => {
         return undefined;
       });
     //TODO: handle refresh tokens etc
@@ -157,15 +160,19 @@ export class CanvasController {
       // Update user courses in DB
       user.courses = courses.map((c) => c.id);
       db.collection(Collections.users).doc(user.id).set(user);
+      canvasErrorCount[discordID] = 0;
       return courses;
     } else {
-      //UserService.clearCanvasToken(user);
-      throw new Error(`Something went wrong with the request for courses of user: ${discordID}`);
+      canvasErrorCount[discordID] ? canvasErrorCount[discordID]++ : canvasErrorCount[discordID] = 1;
+      if (canvasErrorCount[discordID] > 5)
+        UserService.clearCanvasToken(user);
+      Logger.warn(`Something went wrong with the request for courses of user: ${discordID} amount of consistent errors: ${canvasErrorCount[discordID]}`);
     }
+    return undefined;
 
   }
 
-  static async getCalenderAssignments(user: User, warningDays: number): Promise<CalenderAssignment[]> {
+  static async getCalenderAssignments(user: User, warningDays: number): Promise<CalenderAssignment[] | undefined> {
     if (user.courses == undefined || user.courses?.length == 0) {
       throw new Error(`no canvas courses for discord user: ${user.discord.id}`);
     }
@@ -176,9 +183,9 @@ export class CanvasController {
     if (canvas == undefined) {
       throw new Error(`no instance with id ${user.canvas.instanceID}`);
     }
-    if(!user.canvas.token)
-    {
-      throw new Error(`${user.discord.id} has no token`);
+    if (!user.canvas.token) {
+      Logger.error(`${user.discord.id} has no token`);
+      return undefined;
     }
     return Axios.request<CalenderAssignment[]>({
       headers: {
@@ -194,7 +201,13 @@ export class CanvasController {
       method: 'GET',
       baseURL: canvas.endpoint,
       url: '/api/v1/calendar_events'
-    }).then(res => res.data);
+    }).then(res => res.data)
+      .catch(() => {
+        canvasErrorCount[user.discord.id] ? canvasErrorCount[user.discord.id]++ : canvasErrorCount[user.discord.id] = 1;
+        if (canvasErrorCount[user.discord.id] > 5)
+          UserService.clearCanvasToken(user);
+        return undefined;
+      });
   }
 
 }

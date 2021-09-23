@@ -38,6 +38,7 @@ export class ReminderService {
   static async sendAssignment(user: User, warningDays: number): Promise<void> {
     const assignments = await CanvasController.getCalenderAssignments(user, warningDays).catch();
     if (assignments == undefined) {
+      return;
       throw new Error(`could not get assignments for ${user.discord.id}`);
     }
     const ts = new TurndownService();

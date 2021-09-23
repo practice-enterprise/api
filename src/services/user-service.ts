@@ -30,19 +30,20 @@ export class UserService {
   }
 
   static async clearDiscordToken(user: User): Promise<void> {
-    /*await db.collection(Collections.users).doc(user.id).update({
+    await db.collection(Collections.users).doc(user.id).update({
       'discord.token': FieldValue.delete()
-    }).then(() => {*/
-    WebSocket?.sendRoot('sendEmbedDM', {
-      target: {
-        user: user.discord.id
-      },
-      content: new MessageEmbed()
-        .setTitle('Discord token has expired')
-        .setDescription('Your Discord token was cleared from our database because it was expired or wrong.\nYou can log back in on the website .')
-    });
-    //}).catch((err) => { throw new Error(`Failed to clear user ${user.id}'s canvas token. Error: ${err}`); });
+    }).then(() => {
+      WebSocket?.sendRoot('sendEmbedDM', {
+        target: {
+          user: user.discord.id
+        },
+        content: new MessageEmbed()
+          .setTitle('Discord token has expired')
+          .setDescription('Your Discord token was cleared from our database because it was expired or wrong.\nYou can log back in on the website .')
+      });
+    }).catch((err) => { throw new Error(`Failed to clear user ${user.id}'s canvas token. Error: ${err}`); });
   }
+
 
   static async getForCourse(courseID: number, canvasInstanceID?: string): Promise<User | undefined> {
     let users: User[];

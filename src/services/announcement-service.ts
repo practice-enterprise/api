@@ -1,7 +1,7 @@
 import Axios from 'axios';
 import { CanvasAnnouncement, CanvasInstance } from '../models/canvas';
 import TurndownService from 'turndown';
-import { CanvasController } from '../controllers/canvas';
+import { CanvasController, canvasErrorCount } from '../controllers/canvas';
 import { MessageEmbed } from 'discord.js';
 import { WebSocket } from '../app';
 import { Collections, db } from './database';
@@ -41,9 +41,10 @@ export class AnnouncementService {
       baseURL: canvas.endpoint,
       url: `/api/v1/courses/${courseID}/discussion_topics`
     }).then((d) => d.data)
-      .catch((err) => {
-        console.log(err);
-        UserService.clearCanvasToken(user);
+      .catch(() => {
+        canvasErrorCount[user.discord.id] ? canvasErrorCount[user.discord.id]++ : canvasErrorCount[user.discord.id] = 1;
+        if(canvasErrorCount[user.discord.id] > 5)
+          UserService.clearCanvasToken(user);
         return undefined;});
     //TODO: handle refresh/ 401/403
   }
