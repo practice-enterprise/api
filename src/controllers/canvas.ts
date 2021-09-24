@@ -183,7 +183,7 @@ export class CanvasController {
       throw new Error(`no instance with id ${user.canvas.instanceID}`);
     }
     if (!user.canvas.token) {
-      Logger.error(`${user.discord.id} has no token`);
+      Logger.warn(`${user.discord.id} has no Canvas token`);
       return undefined;
     }
     return Axios.request<CalenderAssignment[]>({

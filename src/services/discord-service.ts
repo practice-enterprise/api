@@ -32,7 +32,7 @@ export class DiscordService {
   }
 
   static async tokensFromRefresh(hash: UserHash, userId: string): Promise<DiscordTokens | void> {
-    //Logger.info(`tokensFromRefresh called user. ${userId}`);
+    Logger.info(`tokensFromRefresh called user. ${userId}`);
     const tokens = await axios.request<DiscordTokens>({
       method: 'POST',
       headers: {

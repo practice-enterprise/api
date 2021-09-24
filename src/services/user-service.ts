@@ -12,8 +12,12 @@ import { MessageEmbed } from 'discord.js';
 import { FieldValue } from '@google-cloud/firestore';
 import { Logger } from '../util/logger';
 
+//TODO encrypt?
+const userDTokens: Record<string, string>/*discordId, token(TODO: encrypt?)*/ = {};
+
 export class UserService {
   static async clearCanvasToken(user: User): Promise<void> {
+    console.warn(`deleted: ${user.discord.id} Canvas token`);
     await db.collection(Collections.users).doc(user.id).update({
       'canvas.token': FieldValue.delete()
     })
@@ -30,6 +34,7 @@ export class UserService {
   }
 
   static async clearDiscordToken(user: User): Promise<void> {
+    console.warn(`deleted: ${user.discord.id} Discord token`);
     await db.collection(Collections.users).doc(user.id).update({
       'discord.token': FieldValue.delete()
     }).then(() => {
@@ -161,9 +166,29 @@ export class UserService {
     }
 
     const configs = (await db.collection(Collections.guilds).get()).docs.map((d) => d.data()) as Guild[];
-    const tokens = await DiscordService.tokensFromRefresh(user.discord.token, user.id).catch(() => { Logger.error('tokens from refresh failed'); this.clearDiscordToken(user); });
-    if (!tokens) return;
-    const guilds = await DiscordService.getGuilds(tokens.access_token).catch(/*() => this.clearDiscordToken(user)*/);
+    let accessToken = '';
+    if(userDTokens[user.discord.id])
+      accessToken = userDTokens[user.discord.id];
+    else{
+      const token = (await DiscordService.tokensFromRefresh(user.discord.token, user.id));//.catch(() => { Logger.error('tokens from refresh failed'); this.clearDiscordToken(user); }
+      if(!token) {
+        this.clearDiscordToken(user);
+        return;} //TODO catch when fails
+      accessToken = token.access_token;
+      userDTokens[user.discord.id] = token.access_token;
+    }
+    
+    const guilds = await DiscordService.getGuilds(accessToken)
+      .catch(async () => {
+        if (!user.discord.token) {
+          throw new Error(`no discord token for: ${user.discord.id}`);
+        }
+        const token = (await DiscordService.tokensFromRefresh(user.discord.token, user.id));
+        if(!token)
+          this.clearDiscordToken(user);
+        else
+          userDTokens[user.discord.id] = token.access_token;
+      });
     if (!guilds) {
       //throw new Error(`could not get guilds for user: ${user.discord.id} removed`);
       Logger.error(`userService line 164: Could not get guilds from user ${user.discord.id}, removed token from db`);
