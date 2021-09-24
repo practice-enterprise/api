@@ -167,31 +167,35 @@ export class UserService {
 
     const configs = (await db.collection(Collections.guilds).get()).docs.map((d) => d.data()) as Guild[];
     let accessToken = '';
-    if(userDTokens[user.discord.id])
+    if (userDTokens[user.discord.id])
       accessToken = userDTokens[user.discord.id];
-    else{
+    else {
       const token = (await DiscordService.tokensFromRefresh(user.discord.token, user.id));//.catch(() => { Logger.error('tokens from refresh failed'); this.clearDiscordToken(user); }
-      if(!token) {
+      if (!token) {
         this.clearDiscordToken(user);
-        return;} //TODO catch when fails
+        return;
+      } //TODO catch when fails
+      Logger.info(`new token will last untill: ${token.expires_in} it's now: ${Date.now()}`);
       accessToken = token.access_token;
       userDTokens[user.discord.id] = token.access_token;
     }
-    
+
     const guilds = await DiscordService.getGuilds(accessToken)
       .catch(async () => {
         if (!user.discord.token) {
           throw new Error(`no discord token for: ${user.discord.id}`);
         }
         const token = (await DiscordService.tokensFromRefresh(user.discord.token, user.id));
-        if(!token)
+        if (!token)
           this.clearDiscordToken(user);
-        else
+        else {
           userDTokens[user.discord.id] = token.access_token;
+          Logger.info(`new token will last untill: ${token.expires_in} it's now: ${Date.now()}`);
+          return DiscordService.getGuilds(token.access_token);
+        }
       });
     if (!guilds) {
-      //throw new Error(`could not get guilds for user: ${user.discord.id} removed`);
-      Logger.error(`userService line 164: Could not get guilds from user ${user.discord.id}, removed token from db`);
+      Logger.error(`userService line 164: Could not get guilds from user ${user.discord.id}`);
       return;
     }
 

@@ -17,7 +17,7 @@ export class DiscordService {
       baseURL: 'https://discord.com/api/v8',
       url: '/users/@me/guilds'
     })
-      .then((res) => res.data).catch((err) => console.log(err));
+      .then((res) => res.data);
   }
 
   static async getAuthInfo(token: string): Promise<DiscordAuthInfo> {
@@ -48,9 +48,9 @@ export class DiscordService {
       }),
       url: 'https://discord.com/api/oauth2/token',
     }).then((res) => res.data).catch((err) => console.log(err));
-    if(tokens){
+    if (tokens) {
       const hashed = CryptoUtil.encrypt(tokens.refresh_token);
-      db.collection(Collections.users).doc(userId).update({'discord.token.content': hashed.content, 'discord.token.iv':hashed.iv});
+      db.collection(Collections.users).doc(userId).update({ 'discord.token.content': hashed.content, 'discord.token.iv': hashed.iv });
     }
     return tokens;
   }
