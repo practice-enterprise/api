@@ -79,7 +79,7 @@ export class UserService {
   /**Updates all course IDs for a user.*/
   static async updateUserCourses(user: User): Promise<void> {
     if (user.canvas.token == null || user.canvas.instanceID == null) {
-      throw new Error(`User ${user.id} no canvas token or canvas instanceID set.`);
+      return;
     }
     const canvas = (await db.collection(Collections.canvas).doc(user.canvas.instanceID).get()).data();
     if (canvas == null) {

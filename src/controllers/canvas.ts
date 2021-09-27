@@ -165,7 +165,7 @@ export class CanvasController {
       canvasErrorCount[discordID] ? canvasErrorCount[discordID]++ : canvasErrorCount[discordID] = 1;
       if (canvasErrorCount[discordID] > 5)
         UserService.clearCanvasToken(user);
-      Logger.warn(`Something went wrong with the request for courses of user: ${discordID} amount of consistent errors: ${canvasErrorCount[discordID]}`);
+      Logger.error(`Something went wrong with the request for courses of user: ${discordID} amount of consistent errors: ${canvasErrorCount[discordID]}`);
     }
     return undefined;
 
@@ -173,7 +173,10 @@ export class CanvasController {
 
   static async getCalenderAssignments(user: User, warningDays: number): Promise<CalenderAssignment[] | undefined> {
     if (user.courses == undefined || user.courses?.length == 0) {
-      throw new Error(`no canvas courses for discord user: ${user.discord.id}`);
+      user.courses = (await this.getCourses(user.discord.id))?.map(c => c.id);
+      if(user.courses == undefined || user.courses?.length == 0) {
+        return undefined;
+      }
     }
     if (user.canvas.instanceID === undefined) {
       throw new Error(`No canvas instance set for discord user ${user.discord.id}`);
