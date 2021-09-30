@@ -87,7 +87,12 @@ export class OauthController {
         const accessToken = req.body.token;
         const auth = req.headers.authorization?.replace('Bearer ', '');
         let token = jwt.decode(auth!);
+        if(!token) {
+          res.sendStatus(401);
+          return;
+        }
         const userDoc = await db.collection(Collections.users).doc((token as any).id).get();
+        
         const user = userDoc.data() as User;
         const instance = (await db.collection(Collections.canvas).doc((token as any).instanceId).get()).data();
         if (!instance) {
@@ -211,6 +216,7 @@ export class OauthController {
           .then((snap) =>{
             if (snap.docs.length < 1) {
               res.sendStatus(400); //No users found
+              return;
             }
             snap.forEach((doc) => {
               doc.ref.delete();
