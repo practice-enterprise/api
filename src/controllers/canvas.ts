@@ -123,16 +123,16 @@ export class CanvasController {
   static async getCourses(discordID: string): Promise<CanvasCourse[] | undefined> {
     const snap = (await db.collection(Collections.users).where('discord.id', '==', discordID).get());
     if (snap.empty) {
-      throw new Error(`no user with id ${discordID}`);
+      return undefined;
     }
     const user = snap.docs[0].data() as User;
     if (!user.canvas || !user.canvas.token) {
       //throw new Error(`No canvas token for discord user ${discordID}`);
-      return;
+      return undefined;
     }
     if (user.canvas.instanceID == null) {
       //throw new Error(`No canvas instance set for discord user ${discordID}`);
-      return;
+      return undefined;
     }
 
     const canvas = (await db.collection(Collections.canvas).doc(user.canvas.instanceID).get()).data();
