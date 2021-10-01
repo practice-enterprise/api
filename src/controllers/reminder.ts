@@ -37,7 +37,6 @@ export class ReminderController {
           .update({ 'canvas.lastAssignment': req.params.lastAssignment })
           .then(() => res.sendStatus(204));
         // .finally(() => next());
-        res.sendStatus(204);
       })
       .delete('/', CryptoUtil.verifyToken, (req, res, next) => {
         db.collection(Collections.reminders)
