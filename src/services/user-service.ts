@@ -172,7 +172,10 @@ export class UserService {
     else {
       const token = (await DiscordService.tokensFromRefresh(user.discord.token, user.id));//.catch(() => { Logger.error('tokens from refresh failed'); this.clearDiscordToken(user); }
       if (!token) {
-        this.clearDiscordToken(user);
+        this.clearDiscordToken(user).then(() => {
+          delete userDTokens[user.discord.id]
+        });
+
         return;
       } //TODO catch when fails
       Logger.info(`new token will last untill: ${token.expires_in} it's now: ${Date.now()}`);
@@ -187,7 +190,9 @@ export class UserService {
         }
         const token = (await DiscordService.tokensFromRefresh(user.discord.token, user.id));
         if (!token)
-          this.clearDiscordToken(user);
+          this.clearDiscordToken(user).then(() => {
+            delete userDTokens[user.discord.id]
+          });
         else {
           userDTokens[user.discord.id] = token.access_token;
           Logger.info(`new token will last untill: ${token.expires_in} it's now: ${Date.now()}`);
